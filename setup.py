@@ -6,8 +6,8 @@ version = '1.0dev'
 setup(name='silva.security.overview',
       version=version,
       description="Security overview",
-      long_description=open("README.txt").read() + "\n" +
-                       open(os.path.join("docs", "HISTORY.txt")).read(),
+      # long_description=open("README.txt").read() + "\n" +
+      #                  open(os.path.join("docs", "HISTORY.txt")).read(),
       classifiers=[
         "Framework :: Zope2",
         "License :: OSI Approved :: BSD License",
