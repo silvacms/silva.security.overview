@@ -6,3 +6,11 @@ class ISilvaSecurityOverviewService(ISilvaService):
     """ Interface for security overview service
     """
 
+
+class IUserList(Interface):
+
+    def usernames():
+        """ Return the users that have permissions defined
+        """
+
+
