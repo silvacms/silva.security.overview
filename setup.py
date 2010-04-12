@@ -6,8 +6,8 @@ version = '1.0dev'
 setup(name='silva.security.overview',
       version=version,
       description="Security overview",
-      # long_description=open("README.txt").read() + "\n" +
-      #                  open(os.path.join("docs", "HISTORY.txt")).read(),
+      long_description=open("README.txt").read() + "\n" +
+                       open(os.path.join("docs", "HISTORY.txt")).read(),
       classifiers=[
         "Framework :: Zope2",
         "License :: OSI Approved :: BSD License",
@@ -19,8 +19,9 @@ setup(name='silva.security.overview',
       author_email='info@infrae.com',
       url='http://infrae.com/products/silva',
       license='BSD',
-      packages=find_packages(exclude=['ez_setup']),
-      namespace_packages=['src', 'silva', 'silva.security'],
+      package_dir={'': 'src'},
+      packages=find_packages('src', exclude=['ez_setup']),
+      namespace_packages=['silva', 'silva.security'],
       include_package_data=True,
       zip_safe=False,
       install_requires=[
