@@ -3,6 +3,8 @@
   xmlns:grok="http://namespaces.zope.org/grok"
   xmlns:five="http://namespaces.zope.org/five">
 
+  <five:registerPackage package="." />
+
   <include package="five.grok" />
   <include package="zope.catalog" />
   <include package="zope.intids" />
@@ -10,7 +12,6 @@
   <include package="silva.core.interfaces" />
   <include package="silva.core.views" />
 
-  <five:registerPackage package="." />
   <grok:grok package="." />
 
 
