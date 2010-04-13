@@ -28,5 +28,7 @@ setup(name='silva.security.overview',
         'setuptools',
         'silva.core.conf',
         'silva.core.interfaces',
+        'zope.catalog',
+        'zope.intid',
         ],
       )

@@ -1,11 +1,10 @@
 from five import grok
 
 from zope.component import getUtility
-from zope.app.intids.interfaces import IIntIds
+from zope.intid.interfaces import IIntIds
 from zope.catalog.catalog import Catalog
-from zope.catalog.attribute import 
 from zope.catalog.keyword import KeywordIndex
-from zope.catalog.catalog.interfaces import ICatalog
+from zope.catalog.interfaces import ICatalog
 from zope.lifecycleevent.interfaces import IObjectCreatedEvent
 
 from silva.core.services.base import SilvaService

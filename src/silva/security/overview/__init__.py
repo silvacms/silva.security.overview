@@ -7,7 +7,7 @@ from zope.interface import Interface
 
 silvaconf.extensionName("SilvaSecurityOverview")
 silvaconf.extensionTitle("Silva Security Overview")
-silvaconf.extensionSystem()
+
 
 class SecurityOverviewInstaller(DefaultInstaller):
     """Installer for the Security overview extension. 
