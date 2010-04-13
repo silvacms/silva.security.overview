@@ -8,13 +8,13 @@ from zope.catalog.interfaces import ICatalog
 from zope.lifecycleevent.interfaces import IObjectCreatedEvent
 
 from silva.core.services.base import SilvaService
-from silva.core.conf import silvaconf
+from silva.core import conf as silvaconf
 
-from silva.security.overview import ISecurityOverviewService
+from silva.security.overview.interfaces import ISecurityOverviewService
 from silva.core.interfaces import (ISecurityRoleAddedEvent,
     ISecurityRoleRemovedEvent, ISilvaObject)
 from silva.security.overview.interfaces import IUserList
-
+from silva.core.views import views as silvaviews
 
 def build_index():
     catalog = Catalog()
@@ -36,13 +36,13 @@ class SecurityOverviewService(SilvaService):
     """
     meta_type = 'Silva Security Overview Service'
     grok.implements(ISecurityOverviewService)
-    # silvaconf.icon('service.png')
+    silvaconf.icon('service.png')
 
     manage_options = (
         {'label':'Security overview', 'action':'manage_overview'},
         ) + SilvaService.manage_options
 
-    def __init__(self):
+    def __init__(self, id, title):
         super(SecurityOverviewService, self).__init__
         self.catalog = build_index()
 

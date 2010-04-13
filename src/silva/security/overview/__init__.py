@@ -25,7 +25,10 @@ class SecurityOverviewInstaller(DefaultInstaller):
 
     def uninstall(self, root):
         if self.service_id in root.objectIds():
-            self.root.manage_delObjects(self.service_id)
+            root.manage_delObjects([self.service_id])
+
+    def is_installed(self, root):
+        return self.service_id in root.objectIds()
 
 
 class ISecurityOverviewExtension(Interface):
