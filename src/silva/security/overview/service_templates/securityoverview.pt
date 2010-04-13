@@ -9,6 +9,10 @@
 
     <h1>Security overview</h1>
 
+    <div class="message" tal:condition="python: not(view.entries)">
+        No information available
+    </div>
+
     </div>
   </body>
 </html>

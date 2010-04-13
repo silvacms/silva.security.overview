@@ -1,0 +1,25 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      metal:use-macro="context/@@standard_macros/page">
+
+  <body>
+    <div metal:fill-slot="body">
+
+    <h1>Security service configuration</h1>
+
+    <div class="message" tal:condition="view/message"
+        tal:content="view/message" />
+
+    <form action="manage_config" method="post">
+        <button name="rebuild" value="true">
+            Rebuild all
+        </button>
+        <button name="nothing" value="true">
+            do nothing
+        </button>
+    </form>
+    </div>
+  </body>
+</html>
