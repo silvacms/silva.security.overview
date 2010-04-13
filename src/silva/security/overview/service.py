@@ -4,7 +4,8 @@ from zope.component import getUtility
 from zope.intid.interfaces import IIntIds
 from zope.catalog.catalog import Catalog
 from zope.catalog.keyword import KeywordIndex
-from zope.catalog.interfaces import ICatalog
+from zope.catalog.field import FieldIndex
+from zope.catalog.interfaces import ICatalog, INoAutoIndex
 from zope.lifecycleevent.interfaces import IObjectCreatedEvent
 
 from silva.core.services.base import SilvaService
@@ -30,6 +31,22 @@ class UserList(grok.Adapter):
     def usernames(self):
         return self.context.__ac_local_roles__.keys()
 
+    def roles(self):
+        role_set = set()
+        for roles in self.context.__ac_local_roles__.values():
+            for role in roles: role_set.add(role)
+        return role_set
+
+    def users_roles(self):
+        users_roles = []
+        for user, roles in self.context.__ac_local_roles__.iteritems():
+            for role in roles:
+                users_roles.append((user, role,))
+        return users_roles
+
+    def path(self):
+        return "/".join(self.context.getPhysicalPath())
+
 
 class SecurityOverviewService(SilvaService):
     """ This service is responsible for managing the security events
@@ -44,7 +61,7 @@ class SecurityOverviewService(SilvaService):
         ) + SilvaService.manage_options
 
     def __init__(self, id, title):
-        super(SecurityOverviewService, self).__init__
+        super(SecurityOverviewService, self).__init__(id, title)
         self.catalog = self._build_catalog()
 
     def cleanup(self):
@@ -58,22 +75,44 @@ class SecurityOverviewService(SilvaService):
         root = root or self.get_root()
         intids = getUtility(IIntIds)
         count = 0
-        for content in enumerate(walk_silva_tree(root)):
-            if self.index_object(content, intids): count += 1
+        for (index, ob) in enumerate(walk_silva_tree(root)):
+            if self.index_object(ob, intids): count += 1
         return count
 
     def index_object(self, ob, intutil=None):
         intids = intutil or getUtility(IIntIds)
         try:
-            id = intids.register(ob)
-            self.catalog.index_doc(id, ob)
+            intid = intids.getId(ob)
+            self.catalog.index_doc(intid, ob)
             return ob
         except KeyError:
             return None
 
+    def build_query(self, usernames=None, roles=None):
+        query = {}
+        if roles and usernames:
+            # special case :
+            # we want the objects that have user with a specific role
+            # not a role on any user
+            users_roles = []
+            for user in usernames:
+                for role in roles:
+                    users_roles.append((user, role,))
+            query['users_roles'] = {'query': users_roles, 'operator': 'or'}
+            return query
+        if usernames:
+            query['usernames'] = {'query': usernames, 'operator': 'or'}
+        if roles:
+            query['roles'] = {'query': roles, 'operator': 'or'}
+        return query
+
     def _build_catalog(self):
         catalog = Catalog()
         catalog['usernames'] = KeywordIndex('usernames', IUserList, True)
+        catalog['roles'] = KeywordIndex('roles', IUserList, True)
+        # this index aim to store which user has which role
+        catalog['users_roles'] = KeywordIndex('users_roles', IUserList, True)
+        catalog['path'] = FieldIndex('path', IUserList, True)
         return catalog
 
 
@@ -96,7 +135,7 @@ def RoleRemoved(event):
     try:
         ob = event.object
         logger.debug("event role remove on %s" % "/".join(ob.getPhysicalPath()))
-        if NoAutoIndex.providedBy(ob): return
+        if INoAutoIndex.providedBy(ob): return
         service = getUtility(ISecurityOverviewService)
         service.index_object(ob)
     except (Exception,), e:
@@ -120,9 +159,27 @@ class SecurityOverView(silvaviews.ZMIView):
 
     def update(self):
         catalog = self.context.catalog
-        catalog.apply({'usernames': 'admin'})
-        self.entries = catalog.searchResults() or []
+        self.query = self._build_query()
+        logger.debug('query user roles catalog: %s' % repr(self.query))
+        self.entries = catalog.searchResults(**self.query)
 
+    def unpack_entry(self, entry):
+        ul = IUserList(entry)
+        ur = ul.users_roles()
+        # XXX: fix false positive
+        return [{'username': u, 'role': r, 'path': ul.path()} 
+                    for (u, r,) in ur]
+
+    def _build_query(self):
+
+        def build_param(name):
+            param = self.request.get(name)
+            if param: param = param.strip().split(',')
+            return param
+
+        u = build_param('usernames')
+        r = build_param('roles')
+        return self.context.build_query(usernames=u, roles=r)
 
 class SecurityConfig(silvaviews.ZMIView):
     grok.name('manage_config')

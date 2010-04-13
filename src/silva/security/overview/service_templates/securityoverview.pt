@@ -10,8 +10,20 @@
     <h1>Security overview</h1>
 
     <div class="message" tal:condition="python: not(view.entries)">
-        No information available
+        No information available.
     </div>
+
+    <table tal:condition="view/entries">
+        <tal:block tal:repeat="entry view/entries">
+            <tal:block tal:repeat="data python: view.unpack_entry(entry)">
+            <tr>
+                <td tal:content="python: data['username']" />
+                <td tal:content="python: data['role']" />
+                <td tal:content="python: data['path']" />
+            </tr>
+            </tal:block>
+        </tal:block>
+    </table>
 
     </div>
   </body>
