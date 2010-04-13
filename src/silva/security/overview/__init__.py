@@ -7,12 +7,25 @@ from zope.interface import Interface
 
 silvaconf.extensionName("SilvaSecurityOverview")
 silvaconf.extensionTitle("Silva Security Overview")
-
+silvaconf.extensionSystem()
 
 class SecurityOverviewInstaller(DefaultInstaller):
     """Installer for the Security overview extension. 
     Override install, uninstall to add more actions.
     """
+
+    service_id = 'service_securityoverview'
+
+    def install(self, root):
+        factory = root.manage_addProduct['silva.security.overview']
+
+        if self.service_id not in root.objectIds():
+            factory.manage_addSecurityOverviewService(
+                self.service_id, 'Silva Security Overview')
+
+    def uninstall(self, root):
+        if self.service_id in root.objectIds():
+            self.root.manage_delObjects(self.service_id)
 
 
 class ISecurityOverviewExtension(Interface):
