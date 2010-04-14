@@ -26,10 +26,11 @@ setup(name='silva.security.overview',
       zip_safe=False,
       install_requires=[
         'setuptools',
+        'zope.intid',
+        'zope.index',
+        'zope.catalog',
         'silva.core.conf',
         'silva.core.interfaces',
         'silva.core.views',
-        'zope.catalog',
-        'zope.intid',
         ],
       )
