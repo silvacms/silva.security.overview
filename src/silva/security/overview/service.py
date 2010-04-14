@@ -2,9 +2,12 @@ from five import grok
 
 from zope.component import getUtility
 from zope.intid.interfaces import IIntIds
+
 from zope.catalog.catalog import Catalog
 from zope.catalog.keyword import KeywordIndex
 from zope.catalog.field import FieldIndex
+from silva.security.overview.index import PathIndex
+
 from zope.catalog.interfaces import ICatalog, INoAutoIndex
 from zope.lifecycleevent.interfaces import IObjectCreatedEvent
 
@@ -112,7 +115,7 @@ class SecurityOverviewService(SilvaService):
         catalog['roles'] = KeywordIndex('roles', IUserList, True)
         # this index aim to store which user has which role
         catalog['users_roles'] = KeywordIndex('users_roles', IUserList, True)
-        catalog['path'] = FieldIndex('path', IUserList, True)
+        catalog['path'] = PathIndex('path', IUserList, True)
         return catalog
 
 
@@ -154,7 +157,7 @@ def configureReferenceService(service, event):
     sm.registerUtility(service.catalog, ICatalog)
 
 
-class SecurityOverView(silvaviews.ZMIView):
+class SecurityOverView(silvaviews.ZMIForm):
     grok.name('manage_main')
 
     def update(self):
@@ -180,6 +183,7 @@ class SecurityOverView(silvaviews.ZMIView):
         u = build_param('usernames')
         r = build_param('roles')
         return self.context.build_query(usernames=u, roles=r)
+
 
 class SecurityConfig(silvaviews.ZMIView):
     grok.name('manage_config')

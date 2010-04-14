@@ -13,6 +13,31 @@
         No information available.
     </div>
 
+    <form action="manage_main" method="get">
+        <fieldset>
+            <table>
+                <tr>
+                    <td><label for="path">Path</label></td>
+                    <td><input type="text" name="path" /></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><label for="path">Roles</label></td>
+                    <td><input type="text" name="roles" /></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><label for="path">User names</label></td>
+                    <td><input type="text" name="usernames" /></td>
+                    <td></td>
+                </tr>
+            </table>
+            <div>
+                <input type="submit" value="search" />
+            </div>
+        </fieldset>
+    </form>
+
     <table tal:condition="view/entries">
         <tal:block tal:repeat="entry view/entries">
             <tal:block tal:repeat="data python: view.unpack_entry(entry)">
