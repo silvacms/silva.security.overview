@@ -1,4 +1,4 @@
-# Path index implementation based on repoze.catalog PathIndex2
+# Path index implementation based on repoze.catalog.path2.PathIndex2
 
 from zope.interface import implements
 from persistent import Persistent

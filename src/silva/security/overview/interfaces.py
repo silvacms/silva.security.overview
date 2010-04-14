@@ -13,4 +13,10 @@ class IUserList(Interface):
         """ Return the users that have permissions defined
         """
 
+    def roles():
+        """ Return roles that are defined on object
+        """
 
+    def users_roles():
+        """ Return (user,role) tuple list
+        """
