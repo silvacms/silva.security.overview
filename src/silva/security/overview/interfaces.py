@@ -9,8 +9,8 @@ class ISecurityOverviewService(ISilvaService):
 
 class IUserList(Interface):
 
-    def usernames():
-        """ Return the users that have permissions defined
+    def users():
+        """ Return a list of users that have permissions defined
         """
 
     def roles():

@@ -6,6 +6,7 @@ import BTrees
 
 import zope.catalog.interfaces
 import zope.catalog.attribute
+import zope.index
 import zope.index.interfaces
 import zope.container.contained
 
