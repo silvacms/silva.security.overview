@@ -26,7 +26,9 @@ from silva.core.views import views as silvaviews
 from logging import getLogger
 logger = getLogger('silva.security.overview.service')
 
+
 _role_ignore_set = set(['Owner'])
+
 
 class UserList(grok.Adapter):
     grok.context(ISilvaObject)
@@ -159,15 +161,15 @@ def configure_security_overview_service(service, event):
 
 @grok.subscribe(ISilvaObject, IIntIdRemovedEvent)
 def object_removed(ob, event):
-    root = ob.get_root()
+    service = getUtility(ISecurityOverviewService)
     intids = getUtility(IIntIds)
-    root.service_securityoverview.catalog.unindex_doc(intids.getId(ob))
+    service.catalog.unindex_doc(intids.getId(ob))
 
 @grok.subscribe(ISilvaObject, IIntIdAddedEvent)
 def object_added(ob, event):
-    root = ob.get_root()
+    service = getUtility(ISecurityOverviewService)
     intids = getUtility(IIntIds)
-    root.service_securityoverview.catalog.unindex_doc(intids.getId(ob))
+    service.catalog.unindex_doc(intids.getId(ob))
 
 
 class SecurityOverView(silvaviews.ZMIForm):

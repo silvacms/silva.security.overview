@@ -1,10 +1,20 @@
-from zope.interface import Interface
+from zope.interface import Interface, Attribute
 from silva.core.services.interfaces import ISilvaService
 
 
 class ISecurityOverviewService(ISilvaService):
     """ Interface for security overview service
     """
+
+    catalog = Attribute('zope.catalog object for indexing the objects')
+
+    def build(root):
+        """ clear all and walk down the root to index every permission
+        """
+
+    def index_object():
+        """ index one object
+        """
 
 
 class IUserList(Interface):

@@ -29,6 +29,7 @@ setup(name='silva.security.overview',
         'zope.intid',
         'zope.index',
         'zope.catalog',
+        'silva.core.services'
         'silva.core.conf',
         'silva.core.interfaces',
         'silva.core.views',

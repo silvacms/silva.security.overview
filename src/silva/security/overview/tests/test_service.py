@@ -8,11 +8,14 @@ from Products.Silva.tests.layer import installPackage, SilvaLayer
 
 
 from zope.interface.verify import verifyClass
-from silva.security.overview.service import UserList
+from silva.security.overview.service import UserList, SecurityOverviewService
 from silva.security.overview import interfaces
 
 from zope.component import getUtility
 from zope.intid.interfaces import IIntIds
+
+from Products.Silva.tests.SilvaTestCase import user_dummy
+from Products.Silva.tests.SilvaTestCase import user_editor
 
 
 class SecurityOverviewLayer(SilvaLayer):
@@ -29,6 +32,7 @@ class SecurityOverviewLayer(SilvaLayer):
 
 
 class TestBase(SilvaTestCase.SilvaTestCase):
+
     layer = SecurityOverviewLayer
 
     def afterSetUp(self):
@@ -45,12 +49,13 @@ class TestSecurityOverviewService(TestBase):
 
     def test_interfaces_compliance(self):
         self.assertTrue(verifyClass(interfaces.IUserList, UserList))
+        self.assertTrue(verifyClass(interfaces.ISecurityOverviewService,
+            SecurityOverviewService))
 
     def test_utility_registration(self):
         self.assertTrue(hasattr(self.root, 'service_securityoverview'))
+        self.assertTrue(getUtility(interfaces.ISecurityOverviewService))
 
-from Products.Silva.tests.SilvaTestCase import user_dummy
-from Products.Silva.tests.SilvaTestCase import user_editor
 
 class TestIndexing(TestBase):
 
