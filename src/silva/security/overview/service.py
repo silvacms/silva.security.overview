@@ -11,6 +11,8 @@ from silva.security.overview.index import PathIndex
 from zope.catalog.interfaces import ICatalog, INoAutoIndex
 from zope.lifecycleevent.interfaces import IObjectCreatedEvent
 from zope.intid.interfaces import IIntIdAddedEvent, IIntIdRemovedEvent
+from zope.publisher.interfaces.browser import IBrowserRequest
+from zope.cachedescriptors.property import CachedProperty
 
 from silva.core.services.base import SilvaService
 from silva.core.services.utils import walk_silva_tree
@@ -19,7 +21,7 @@ from silva.core import conf as silvaconf
 from silva.security.overview.interfaces import ISecurityOverviewService
 from silva.core.interfaces import (ISecurityRoleAddedEvent,
     ISecurityRoleRemovedEvent, ISilvaObject)
-from silva.security.overview.interfaces import IUserList
+from silva.security.overview.interfaces import IUserRoleList
 from silva.core.views import views as silvaviews
 
 
@@ -27,25 +29,66 @@ from logging import getLogger
 logger = getLogger('silva.security.overview.service')
 
 
-_role_ignore_set = set(['Owner'])
+_role_ignore_set = set() #set(['Owner'])
+
+
+class RequestUserList(grok.Adapter):
+    grok.context(IBrowserRequest)
+    grok.implements(IUserRoleList)
+    grok.provides(IUserRoleList)
+
+    @CachedProperty
+    def users(self):
+        user = self.context.get('user')
+        if user:
+            return [user]
+        return []
+
+    @CachedProperty
+    def roles(self):
+        def build_list_param(name):
+            param = self.context.get(name)
+            if param: param = param.strip().split(',')
+            return param or []
+
+        return build_list_param('roles')
+
+    @CachedProperty
+    def users_roles(self):
+        user = self._get_user()
+        roles = self.roles
+        if user is None or not roles:
+            return []
+        return [(user, role) for role in self.roles]
+
+    def _get_user(self):
+        user_list = self.users
+        return user_list and user_list[0] or None
+
+    @CachedProperty
+    def path(self):
+        return self.context.get('path')
 
 
 class UserList(grok.Adapter):
     grok.context(ISilvaObject)
-    grok.implements(IUserList)
-    grok.provides(IUserList)
+    grok.implements(IUserRoleList)
+    grok.provides(IUserRoleList)
 
+    @CachedProperty
     def users(self):
         return self.context.__ac_local_roles__.keys()
 
+    @CachedProperty
     def roles(self):
         role_set = set()
         for roles in self.context.__ac_local_roles__.values():
             for role in roles:
-                if role not in _role_ignore_set: 
+                if role not in _role_ignore_set:
                     role_set.add(role)
         return role_set
 
+    @CachedProperty
     def users_roles(self):
         users_roles = []
         for user, roles in self.context.__ac_local_roles__.iteritems():
@@ -54,8 +97,9 @@ class UserList(grok.Adapter):
                     users_roles.append((user, role,))
         return users_roles
 
+    @CachedProperty
     def path(self):
-        return self.context.getPhysicalPath()
+        return "/".join(self.context.getPhysicalPath())
 
 
 class SecurityOverviewService(SilvaService):
@@ -99,56 +143,44 @@ class SecurityOverviewService(SilvaService):
         except KeyError:
             return None
 
-    def build_query(self, user=None, roles=None):
+    def build_query(self, user_list):
         query = {}
-        if roles and user:
-            # special case :
-            # we want the objects that have user with a specific role
-            # not a role on any user
-            users_roles = []
-            for role in roles:
-                users_roles.append((user, role,))
-            query['users_roles'] = {'query': users_roles, 'operator': 'or'}
-            return query
+        ul = user_list
+        user = ul.users and ul.users[0] or None
+
+        if ul.users_roles:
+            query['users_roles'] = {'query': ul.users_roles, 'operator': 'or'}
         if user:
             query['users'] = user
-        if roles:
-            query['roles'] = {'query': roles, 'operator': 'or'}
+        if ul.roles:
+            query['roles'] = {'query': ul.roles, 'operator': 'or'}
+        if ul.path:
+            query['path'] = ul.path
         return query
 
     def _build_catalog(self):
         catalog = Catalog()
-        catalog['users'] = KeywordIndex('users', IUserList, True)
-        catalog['roles'] = KeywordIndex('roles', IUserList, True)
+        catalog['users'] = KeywordIndex('users', IUserRoleList, False)
+        catalog['roles'] = KeywordIndex('roles', IUserRoleList, False)
         # this index aim to store which user has which role
-        catalog['users_roles'] = KeywordIndex('users_roles', IUserList, True)
-        catalog['path'] = PathIndex('path', IUserList, True)
+        catalog['users_roles'] = KeywordIndex('users_roles', IUserRoleList, False)
+        catalog['path'] = PathIndex('path', IUserRoleList, False)
         return catalog
 
 
 @grok.subscribe(ISilvaObject, ISecurityRoleAddedEvent)
 def role_added(ob, event):
-    try:
-        logger.debug("event role add on %s" % "/".join(ob.getPhysicalPath()))
-        if INoAutoIndex.providedBy(ob): return
-        service = getUtility(ISecurityOverviewService)
-        service.index_object(ob)
-    except (Exception,), e:
-        logger.error('error in ISecurityRoleAddedEvent subscriber for'
-            ' silva.security.overview : %s' % str(e))
-        raise
+    logger.info("event role add on %s" % "/".join(ob.getPhysicalPath()))
+    if INoAutoIndex.providedBy(ob): return
+    service = getUtility(ISecurityOverviewService)
+    service.index_object(ob)
 
 @grok.subscribe(ISilvaObject, ISecurityRoleRemovedEvent)
 def role_removed(ob, event):
-    try:
-        logger.debug("event role remove on %s" % "/".join(ob.getPhysicalPath()))
-        if INoAutoIndex.providedBy(ob): return
-        service = getUtility(ISecurityOverviewService)
-        service.index_object(ob)
-    except (Exception,), e:
-        logger.error('error in ISecurityRoleRemovedEvent subscriber for'
-            ' silva.security.overview : %s' % str(e))
-        raise
+    logger.info("event role remove on %s" % "/".join(ob.getPhysicalPath()))
+    if INoAutoIndex.providedBy(ob): return
+    service = getUtility(ISecurityOverviewService)
+    service.index_object(ob)
 
 @grok.subscribe(ISecurityOverviewService, IObjectCreatedEvent)
 def configure_security_overview_service(service, event):
@@ -169,36 +201,101 @@ def object_removed(ob, event):
 def object_added(ob, event):
     service = getUtility(ISecurityOverviewService)
     intids = getUtility(IIntIds)
-    service.catalog.unindex_doc(intids.getId(ob))
+    service.index_object(intids.getId(ob))
 
 
-class SecurityOverView(silvaviews.ZMIForm):
+class DisplayMode(object):
+
+    USER_FILTER = 1
+    ROLE_FILTER = 2
+    PATH_FILTER = 4
+
+    def __init__(self, request):
+        self.request = request
+        self.user = self.request.get('user')
+        role_list = self.request.get('roles', '').strip()
+        self.roles = role_list and role_list.split(',') or None
+        self.path = self.request.get('path')
+        self._set_options()
+
+    def _set_options(self):
+        self.options = 0
+        if self.user:
+            self.options |= self.USER_FILTER
+        if self.roles:
+            self.options |= self.ROLE_FILTER
+        if self.path:
+            self.options |= self.PATH_FILTER
+
+    def should_display(self, user, role):
+        if self.options & self.USER_FILTER and \
+                self.options & self.ROLE_FILTER:
+            return user == self.user and role in self.roles
+
+        if self.options & self.USER_FILTER:
+            return user == self.user
+
+        if self.options & self.ROLE_FILTER:
+            return role in self.roles
+
+        return True
+
+
+class Cycle(object):
+
+    def __init__(self, name, values):
+        self.name = name
+        self.values = values
+        self.index = 0
+
+    def cycle(self):
+        try:
+            return self.values[self.index]
+        finally:
+            self.inc()
+
+    def inc(self):
+        self.index += 1
+        if self.index > (len(self) - 1):
+            self.index = 0
+
+    def __len__(self):
+        return len(self.values)
+
+
+class SecurityOverView(silvaviews.ZMIView):
     grok.name('manage_main')
 
     def update(self):
         catalog = self.context.catalog
         self.query = self._build_query()
-        logger.debug('query user roles catalog: %s' % repr(self.query))
+        logger.info('query user roles catalog: %s' % repr(self.query))
         self.entries = catalog.searchResults(**self.query)
+        logger.info("%d results." % len(self.entries or []))
+        self.display_mode = DisplayMode(self.request)
+
+    def cycle(self, name, values):
+        if not hasattr(self, '_cycles'):
+            self._cycles = {}
+        if not self._cycles.has_key(name):
+            c = Cycle(name, values)
+            self._cycles[name] = c
+        else:
+            c = self._cycles[name]
+        return c.cycle()
 
     def unpack_entry(self, entry):
-        ul = IUserList(entry)
-        ur = ul.users_roles()
         results = []
-        for (user, role) in ur:
-            results.append({'username': u, 'role': r, 'path': ul.path()})
-        return results 
+        user_list = IUserRoleList(entry)
+        for user, role in user_list.users_roles:
+            if self.display_mode.should_display(user, role):
+                results.append({'user': user,
+                            'role': role, 'path': user_list.path})
+        return results
 
     def _build_query(self):
-
-        def build_param(name):
-            param = self.request.get(name)
-            if param: param = param.strip().split(',')
-            return param
-
-        u = build_param('user')
-        r = build_param('roles')
-        return self.context.build_query(user=u, roles=r)
+        ul = IUserRoleList(self.request)
+        return self.context.build_query(ul)
 
 
 class SecurityConfig(silvaviews.ZMIView):

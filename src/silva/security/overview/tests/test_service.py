@@ -48,7 +48,7 @@ class TestBase(SilvaTestCase.SilvaTestCase):
 class TestSecurityOverviewService(TestBase):
 
     def test_interfaces_compliance(self):
-        self.assertTrue(verifyClass(interfaces.IUserList, UserList))
+        self.assertTrue(verifyClass(interfaces.IUserRoleList, UserList))
         self.assertTrue(verifyClass(interfaces.ISecurityOverviewService,
             SecurityOverviewService))
 

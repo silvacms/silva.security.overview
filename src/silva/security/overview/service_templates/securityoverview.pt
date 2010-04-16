@@ -18,17 +18,26 @@
             <table>
                 <tr>
                     <td><label for="path">Path</label></td>
-                    <td><input type="text" name="path" /></td>
+                    <td>
+                        <input type="text" name="path" size="60"
+                        tal:attributes="value python: request.get('path')" />
+                    </td>
                     <td></td>
                 </tr>
                 <tr>
                     <td><label for="path">Roles</label></td>
-                    <td><input type="text" name="roles" /></td>
-                    <td></td>
+                    <td>
+                        <input type="text" name="roles" size="60"
+                        tal:attributes="value python: request.get('roles')" />
+                    </td>
+                    <td>Roles comma separated</td>
                 </tr>
                 <tr>
-                    <td><label for="path">User names</label></td>
-                    <td><input type="text" name="usernames" /></td>
+                    <td><label for="path">User</label></td>
+                    <td>
+                        <input type="text" name="user" size="60"
+                        tal:attributes="value python: request.get('user')" />
+                    </td>
                     <td></td>
                 </tr>
             </table>
@@ -38,13 +47,18 @@
         </fieldset>
     </form>
 
-    <table tal:condition="view/entries">
+    <table style="width: 100%" class="results" tal:condition="view/entries">
+        <tr class="list-header">
+            <td><div class="list-item">user</div></td>
+            <td><div class="list-item">role</div></td>
+            <td><div class="list-item">path</div></td>
+        </tr>
         <tal:block tal:repeat="entry view/entries">
             <tal:block tal:repeat="data python: view.unpack_entry(entry)">
-            <tr>
-                <td tal:content="python: data['username']" />
-                <td tal:content="python: data['role']" />
-                <td tal:content="python: data['path']" />
+            <tr tal:attributes="class python: view.cycle('row', ['row-hilite', 'row-normal'])">
+                <td><div tal:content="python: data['user']" /></td>
+                <td><div tal:content="python: data['role']" /></td>
+                <td><div tal:content="python: data['path']" /></td>
             </tr>
             </tal:block>
         </tal:block>
