@@ -20,7 +20,7 @@
                     <td><label for="path">Path</label></td>
                     <td>
                         <input type="text" name="path" size="60"
-                        tal:attributes="value python: request.get('path')" />
+                        tal:attributes="value python: request.get('path', view.root_path)" />
                     </td>
                     <td></td>
                 </tr>
@@ -51,14 +51,17 @@
         <tr class="list-header">
             <td><div class="list-item">user</div></td>
             <td><div class="list-item">role</div></td>
-            <td><div class="list-item">path</div></td>
         </tr>
         <tal:block tal:repeat="entry view/entries">
+            <tr class="row-hilite">
+                <td style="border-top: 1px solid #ccc" colspan="2">
+                    <div tal:content="python: '/'.join(entry.getPhysicalPath())" />
+                </td>
+            </tr>
             <tal:block tal:repeat="data python: view.unpack_entry(entry)">
-            <tr tal:attributes="class python: view.cycle('row', ['row-hilite', 'row-normal'])">
+            <tr class="row-normal">
                 <td><div tal:content="python: data['user']" /></td>
                 <td><div tal:content="python: data['role']" /></td>
-                <td><div tal:content="python: data['path']" /></td>
             </tr>
             </tal:block>
         </tal:block>

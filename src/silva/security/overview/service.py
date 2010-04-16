@@ -274,6 +274,10 @@ class SecurityOverView(silvaviews.ZMIView):
         logger.info("%d results." % len(self.entries or []))
         self.display_mode = DisplayMode(self.request)
 
+    @property
+    def root_path(self):
+        return "/".join(self.context.get_root().getPhysicalPath())
+
     def cycle(self, name, values):
         if not hasattr(self, '_cycles'):
             self._cycles = {}
