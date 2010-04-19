@@ -47,6 +47,7 @@
         </fieldset>
     </form>
 
+    <!-- <div class="nav" tal:content="view/batch" /> -->
     <table style="width: 100%" class="results" tal:condition="view/entries">
         <tr class="list-header">
             <td><div class="list-item">user</div></td>

@@ -3,7 +3,7 @@ from five import grok
 from zope.component import getUtility
 from zope.intid.interfaces import IIntIds
 
-from zope.catalog.catalog import Catalog
+from silva.security.overview.catalog import Catalog
 from zope.catalog.keyword import KeywordIndex
 from zope.catalog.field import FieldIndex
 from silva.security.overview.index import PathIndex
@@ -269,9 +269,9 @@ class SecurityOverView(silvaviews.ZMIView):
     def update(self):
         catalog = self.context.catalog
         self.query = self._build_query()
+        self.query['limit'] = int(self.request.get('pagelen') or 20)
         logger.info('query user roles catalog: %s' % repr(self.query))
         self.entries = catalog.searchResults(**self.query)
-        logger.info("%d results." % len(self.entries or []))
         self.display_mode = DisplayMode(self.request)
 
     @property
