@@ -1,6 +1,6 @@
 from five import grok
 
-from zope.component import getUtility
+from zope.component import getUtility, queryUtility
 from zope.intid.interfaces import IIntIds
 
 from silva.security.overview.catalog import Catalog
@@ -172,15 +172,17 @@ class SecurityOverviewService(SilvaService):
 def role_added(ob, event):
     logger.info("event role add on %s" % "/".join(ob.getPhysicalPath()))
     if INoAutoIndex.providedBy(ob): return
-    service = getUtility(ISecurityOverviewService)
-    service.index_object(ob)
+    service = queryUtility(ISecurityOverviewService)
+    if service:
+        service.index_object(ob)
 
 @grok.subscribe(ISilvaObject, ISecurityRoleRemovedEvent)
 def role_removed(ob, event):
     logger.info("event role remove on %s" % "/".join(ob.getPhysicalPath()))
     if INoAutoIndex.providedBy(ob): return
-    service = getUtility(ISecurityOverviewService)
-    service.index_object(ob)
+    service = queryUtility(ISecurityOverviewService)
+    if service:
+        service.index_object(ob)
 
 @grok.subscribe(ISecurityOverviewService, IObjectCreatedEvent)
 def configure_security_overview_service(service, event):
@@ -193,15 +195,17 @@ def configure_security_overview_service(service, event):
 
 @grok.subscribe(ISilvaObject, IIntIdRemovedEvent)
 def object_removed(ob, event):
-    service = getUtility(ISecurityOverviewService)
-    intids = getUtility(IIntIds)
-    service.catalog.unindex_doc(intids.getId(ob))
+    service = queryUtility(ISecurityOverviewService)
+    intids = queryUtility(IIntIds)
+    if intids and service:
+        service.catalog.unindex_doc(intids.getId(ob))
 
 @grok.subscribe(ISilvaObject, IIntIdAddedEvent)
 def object_added(ob, event):
-    service = getUtility(ISecurityOverviewService)
-    intids = getUtility(IIntIds)
-    service.index_object(intids.getId(ob))
+    service = queryUtility(ISecurityOverviewService)
+    intids = queryUtility(IIntIds)
+    if intids and service:
+        service.index_object(intids.getId(ob))
 
 
 class DisplayMode(object):
