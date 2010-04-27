@@ -93,7 +93,7 @@ class UserList(grok.Adapter):
         users_roles = []
         for user, roles in self.context.__ac_local_roles__.iteritems():
             for role in roles:
-                if role not in _role_ignore_set: 
+                if role not in _role_ignore_set:
                     users_roles.append((user, role,))
         return users_roles
 

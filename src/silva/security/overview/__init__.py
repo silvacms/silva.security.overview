@@ -9,8 +9,8 @@ silvaconf.extensionName("SilvaSecurityOverview")
 silvaconf.extensionTitle("Silva Security Overview")
 
 
-class SecurityOverviewInstaller(DefaultInstaller):
-    """Installer for the Security overview extension. 
+class Installer(DefaultInstaller):
+    """Installer for the Security overview extension.
     Override install, uninstall to add more actions.
     """
 
@@ -22,21 +22,18 @@ class SecurityOverviewInstaller(DefaultInstaller):
         if self.service_id not in root.objectIds():
             factory.manage_addSecurityOverviewService(
                 self.service_id, 'Silva Security Overview')
+        super(Installer, self).install(root)
 
     def uninstall(self, root):
         if self.service_id in root.objectIds():
             root.manage_delObjects([self.service_id])
+        super(Installer, self).uninstall(root)
 
-    def is_installed(self, root):
-        return self.service_id in root.objectIds()
-
-
-class ISecurityOverviewExtension(Interface):
+class IExtension(Interface):
     """Marker interface for our extension.
     """
 
 
-install = SecurityOverviewInstaller("SilvaSecurityOverview",
-    ISecurityOverviewExtension)
+install = Installer("SilvaSecurityOverview", IExtension)
 
 
