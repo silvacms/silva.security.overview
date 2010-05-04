@@ -1,6 +1,6 @@
 from five import grok
 
-from zope.component import getUtility, queryUtility
+from zope.component import getUtility, queryUtility, queryMultiAdapter
 from zope.intid.interfaces import IIntIds
 
 from silva.security.overview.catalog import Catalog
@@ -23,7 +23,7 @@ from silva.core.interfaces import (ISecurityRoleAddedEvent,
     ISecurityRoleRemovedEvent, ISilvaObject)
 from silva.security.overview.interfaces import IUserRoleList
 from silva.core.views import views as silvaviews
-
+from zeam.utils.batch.interfaces import IBatching
 
 from logging import getLogger
 logger = getLogger('silva.security.overview.service')
@@ -107,6 +107,7 @@ class SecurityOverviewService(SilvaService):
     """
     meta_type = 'Silva Security Overview Service'
     grok.implements(ISecurityOverviewService)
+    default_service_identifier = 'silva_securityoverview'
     silvaconf.icon('service.png')
 
     manage_options = (
@@ -114,8 +115,8 @@ class SecurityOverviewService(SilvaService):
         {'label':'Configuration', 'action': 'manage_config'},
         ) + SilvaService.manage_options
 
-    def __init__(self, id, title):
-        super(SecurityOverviewService, self).__init__(id, title)
+    def __init__(self, id):
+        super(SecurityOverviewService, self).__init__(id)
         self.cleanup()
 
     def cleanup(self):
@@ -268,15 +269,23 @@ class Cycle(object):
 
 
 class SecurityOverView(silvaviews.ZMIView):
-    grok.name('manage_main')
+    name = 'manage_main'
+    grok.name(name)
 
     def update(self):
         catalog = self.context.catalog
         self.query = self._build_query()
-        self.query['limit'] = int(self.request.get('pagelen') or 20)
+        self.query['_limit'] = int(self.request.get('pagelen') or 20)
         logger.info('query user roles catalog: %s' % repr(self.query))
-        self.entries = catalog.searchResults(**self.query)
+        self.entries = catalog.searchResults(
+            request=self.request, **self.query)
+        self.batch = queryMultiAdapter(
+            (self, self.entries, self.request,), IBatching)
         self.display_mode = DisplayMode(self.request)
+
+    @property
+    def form_path(self):
+        return '/'.join(self.context.absolute_url(), 'manage_main')
 
     @property
     def root_path(self):
@@ -312,7 +321,7 @@ class SecurityConfig(silvaviews.ZMIView):
     message = ''
 
     def update(self):
-        if self.request.method.lower() == 'post':
+        if self.request.method.upper() == 'POST':
             if self.request.get('rebuild'):
                 count = self.context.build()
                 self.message = '%d objects indexed.' % count
