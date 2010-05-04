@@ -31,7 +31,8 @@ class PathIndexStore(Persistent):
     """
 
     implements(zope.index.interfaces.IInjection,
-        zope.index.interfaces.IIndexSearch)
+        zope.index.interfaces.IIndexSearch,
+        zope.index.interfaces.IIndexSort)
 
     family = BTrees.family32
 
@@ -301,6 +302,18 @@ class PathIndexStore(Persistent):
             attr_checker = query.get('attr_checker', None)
 
         return self.search(path, depth, include_path, attr_checker)
+
+    def sort(self, docids, reverse=False, limit=None):
+        def get_path(docid):
+            path_tuple = self.docid_to_path.get(docid)
+            return "/".join(path_tuple)
+
+        for i, docid in enumerate(sorted(docids,
+                    key=get_path,
+                    reverse=reverse)):
+            yield docid
+            if limit and i > limit:
+                break
 
 
 def add_to_closest(sofar, thispath, theset):

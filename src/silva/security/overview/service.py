@@ -156,7 +156,7 @@ class SecurityOverviewService(SilvaService):
         if ul.roles:
             query['roles'] = {'query': ul.roles, 'operator': 'or'}
         if ul.path:
-            query['path'] = ul.path
+            query['path'] = {'query': ul.path, 'include_path': True}
         return query
 
     def _build_catalog(self):
@@ -276,6 +276,7 @@ class SecurityOverView(silvaviews.ZMIView):
         catalog = self.context.catalog
         self.query = self._build_query()
         self.query['_limit'] = int(self.request.get('pagelen') or 20)
+        self.query['_sort_index'] = 'path'
         logger.info('query user roles catalog: %s' % repr(self.query))
         self.entries = catalog.searchResults(
             request=self.request, **self.query)
@@ -285,11 +286,14 @@ class SecurityOverView(silvaviews.ZMIView):
 
     @property
     def form_path(self):
-        return '/'.join(self.context.absolute_url(), 'manage_main')
+        return '%s/manage_main' % self.context.absolute_url()
 
     @property
     def root_path(self):
         return "/".join(self.context.get_root().getPhysicalPath())
+
+    def smi_security_url(self, obj):
+        return "%s/edit/tab_access" % obj.absolute_url()
 
     def cycle(self, name, values):
         if not hasattr(self, '_cycles'):
