@@ -20,8 +20,7 @@ class Installer(DefaultInstaller):
         factory = root.manage_addProduct['silva.security.overview']
 
         if self.service_id not in root.objectIds():
-            factory.manage_addSecurityOverviewService(
-                self.service_id, 'Silva Security Overview')
+            factory.manage_addSecurityOverviewService(self.service_id)
         super(Installer, self).install(root)
 
     def uninstall(self, root):

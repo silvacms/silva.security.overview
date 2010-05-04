@@ -7,7 +7,7 @@ from zeam.utils.batch import batch
 
 class Catalog(Zope3Catalog):
 
-    def searchResults(self, **searchterms):
+    def searchResults(self, request=None, **searchterms):
         sort_index = searchterms.pop('_sort_index', None)
         limit = searchterms.pop('_limit', None)
         reverse = searchterms.pop('_reverse', False)
@@ -17,15 +17,15 @@ class Catalog(Zope3Catalog):
                 index = self[sort_index]
                 if not zope.index.interfaces.IIndexSort.providedBy(index):
                     raise ValueError('Index %s does not support sorting.' % sort_index)
-                results = list(index.sort(results, limit=limit, reverse=reverse))
+                results = list(index.sort(results, reverse=reverse))
             else:
-                if reverse or limit:
-                    results = list(results)
                 if reverse:
+                    results = list(results)
                     results.reverse()
             uidutil = zope.component.getUtility(IIntIds)
             def factory(item):
                 return uidutil.getObject(item)
-            results = batch(results, factory=factory, count=limit)
+            results = batch(results, factory=factory, count=limit,
+                request=request)
         return results
 
