@@ -16,9 +16,6 @@
         <button name="rebuild" value="true">
             Rebuild all
         </button>
-        <button name="nothing" value="true">
-            do nothing
-        </button>
     </form>
     </div>
   </body>

@@ -57,7 +57,9 @@
         <tal:block tal:repeat="entry view/entries">
             <tr class="row-hilite">
                 <td style="border-top: 1px solid #ccc" colspan="2">
-                    <div tal:content="python: '/'.join(entry.getPhysicalPath())" />
+                    <a 
+                        tal:attributes="href python: view.smi_security_url(entry)"
+                        tal:content="python: '/'.join(entry.getPhysicalPath())" />
                 </td>
             </tr>
             <tal:block tal:repeat="data python: view.unpack_entry(entry)">
@@ -68,6 +70,9 @@
             </tal:block>
         </tal:block>
     </table>
+
+    <div class="nav" tal:content="structure view/batch" />
+
 
     </div>
   </body>
