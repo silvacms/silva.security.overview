@@ -39,6 +39,7 @@ class TestBase(SilvaTestCase.SilvaTestCase):
         super(TestBase, self).afterSetUp()
         self.installExtension('SilvaSecurityOverview')
         self.service = self.root.service_securityoverview
+        self.service.role_ignored = set(['Owner'])
 
     def beforeTeadown(self):
         super(TestBase, self).beforeTeadown()
@@ -69,6 +70,18 @@ class TestIndexing(TestBase):
         results = self.service.catalog.searchResults(users=user_dummy)
         self.assertTrue(self.publication in results, 'publication should'
             ' show up in the results when querying for user')
+
+    def test_ignored_roles(self):
+        self.service.role_ignored.add('Reader')
+        self.service.cleanup()
+        self.publication.sec_assign(user_dummy, 'Viewer')
+        self.publication.sec_assign(user_dummy, 'Reader')
+        results = self.service.catalog.searchResults(roles='Reader')
+        self.assertTrue(self.publication not in results, 'publication should'
+            ' not show up in results since role is ignored')
+        results = self.service.catalog.searchResults(roles='Viewer')
+        self.assertTrue(self.publication in results, 'publication should'
+            ' show up in results since role is NOT ignored')
 
     def test_roles_are_indexed(self):
         self.publication.sec_assign(user_dummy, 'Reader')
