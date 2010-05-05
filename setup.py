@@ -36,5 +36,6 @@ setup(name='silva.security.overview',
         'silva.core.conf',
         'silva.core.interfaces',
         'silva.core.views',
+        'zeam.form.silva',
         ],
       )
