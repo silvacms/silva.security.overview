@@ -31,44 +31,6 @@ from logging import getLogger
 logger = getLogger('silva.security.overview.service')
 
 
-class RequestUserList(grok.Adapter):
-    grok.context(IBrowserRequest)
-    grok.implements(IUserRoleList)
-    grok.provides(IUserRoleList)
-
-    @CachedProperty
-    def users(self):
-        user = self.context.get('user')
-        if user:
-            return [user]
-        return []
-
-    @CachedProperty
-    def roles(self):
-        def build_list_param(name):
-            param = self.context.get(name)
-            if param: param = param.strip().split(',')
-            return param or []
-
-        return build_list_param('roles')
-
-    @CachedProperty
-    def users_roles(self):
-        user = self._get_user()
-        roles = self.roles
-        if user is None or not roles:
-            return []
-        return [(user, role) for role in self.roles]
-
-    def _get_user(self):
-        user_list = self.users
-        return user_list and user_list[0] or None
-
-    @CachedProperty
-    def path(self):
-        return self.context.get('path')
-
-
 class UserList(grok.Adapter):
     grok.context(ISilvaObject)
     grok.implements(IUserRoleList)
@@ -136,7 +98,7 @@ class SecurityOverviewService(SilvaService):
         root = root or self.get_root()
         intids = getUtility(IIntIds)
         count = 0
-        for (index, ob) in enumerate(walk_silva_tree(root)):
+        for (index, ob,) in enumerate(walk_silva_tree(root)):
             if self.index_object(ob, intids): count += 1
         return count
 
@@ -144,31 +106,29 @@ class SecurityOverviewService(SilvaService):
         intids = intutil or getUtility(IIntIds)
         try:
             intid = intids.getId(ob)
-            self.catalog.index_doc(intid, ob)
-            return ob
+            role_list = IUserRoleList(ob)
+            if role_list.roles:
+                self.catalog.index_doc(intid, ob)
+                return ob
+            return None
         except KeyError:
             return None
 
-    def build_query(self, user_list):
+    def build_query(self, user, role, path):
         query = {}
-        ul = user_list
-        user = ul.users and ul.users[0] or None
-
-        if ul.users_roles:
-            query['users_roles'] = {'query': ul.users_roles, 'operator': 'or'}
+        if user and role:
+            query['users_roles'] = {'query': [(user, role)],
+                'operator': 'or'}
         if user:
             query['users'] = user
-        if ul.roles:
-            query['roles'] = {'query': ul.roles, 'operator': 'or'}
-        if ul.path:
-            query['path'] = {'query': ul.path, 'include_path': True}
+        if role:
+            query['roles'] = {'query': role, 'operator': 'or'}
+        if path:
+            query['path'] = {'query': path, 'include_path': True}
         return query
 
     def _build_catalog(self):
         catalog = Catalog()
-        catalog['users'] = KeywordIndex('users', IUserRoleList, False)
-        catalog['roles'] = KeywordIndex('roles', IUserRoleList, False)
-        # this index aim to store which user has which role
         catalog['users_roles'] = KeywordIndex('users_roles', IUserRoleList, False)
         catalog['path'] = PathIndex('path', IUserRoleList, False)
         return catalog
@@ -206,43 +166,6 @@ def object_added(ob, event):
         service.index_object(intids.getId(ob))
 
 
-class DisplayMode(object):
-
-    USER_FILTER = 1
-    ROLE_FILTER = 2
-    PATH_FILTER = 4
-
-    def __init__(self, request):
-        self.request = request
-        self.user = self.request.get('user')
-        role_list = self.request.get('roles', '').strip()
-        self.roles = role_list and role_list.split(',') or None
-        self.path = self.request.get('path')
-        self._set_options()
-
-    def _set_options(self):
-        self.options = 0
-        if self.user:
-            self.options |= self.USER_FILTER
-        if self.roles:
-            self.options |= self.ROLE_FILTER
-        if self.path:
-            self.options |= self.PATH_FILTER
-
-    def should_display(self, user, role):
-        if self.options & self.USER_FILTER and \
-                self.options & self.ROLE_FILTER:
-            return user == self.user and role in self.roles
-
-        if self.options & self.USER_FILTER:
-            return user == self.user
-
-        if self.options & self.ROLE_FILTER:
-            return role in self.roles
-
-        return True
-
-
 class Cycle(object):
 
     def __init__(self, name, values):
@@ -264,15 +187,41 @@ class Cycle(object):
     def __len__(self):
         return len(self.values)
 
+def _validate_search(form):
+    data, errors = form.extractData()
+    if data['user'] is silvaforms.NO_VALUE \
+            and data['role'] is silvaforms.NO_VALUE:
+        return False
+    return True
 
-class SecurityOverView(silvaviews.ZMIView):
+class SecurityOverView(silvaforms.ZMIForm):
     name = 'manage_main'
     grok.name(name)
     grok.context(ISecurityOverviewService)
 
+    fields = silvaforms.Fields(
+        silvaforms.Field('user'),
+        silvaforms.Field('role'),
+        silvaforms.Field('path'))
+
     def update(self):
+        self.entries = None
+
+    @silvaforms.action('Search', validator=_validate_search)
+    def search(self):
         catalog = self.context.catalog
-        self.query = self._build_query()
+        data, errors = self.extractData()
+        if errors:
+            return silvaforms.FAILURE
+
+        def extract(val):
+            return val is not silvaforms.NO_VALUE and val or ''
+
+        self.query = self.context.build_query(
+            extract(data['user']),
+            extract(data['role']),
+            extract(data['path']))
+
         self.query['_limit'] = int(self.request.get('pagelen') or 20)
         self.query['_sort_index'] = 'path'
         logger.info('query user roles catalog: %s' % repr(self.query))
@@ -280,7 +229,6 @@ class SecurityOverView(silvaviews.ZMIView):
             request=self.request, **self.query)
         self.batch = queryMultiAdapter(
             (self, self.entries, self.request,), IBatching)
-        self.display_mode = DisplayMode(self.request)
 
     @property
     def form_path(self):
@@ -307,14 +255,9 @@ class SecurityOverView(silvaviews.ZMIView):
         results = []
         user_list = IUserRoleList(entry)
         for user, role in user_list.users_roles:
-            if self.display_mode.should_display(user, role):
-                results.append({'user': user,
-                            'role': role, 'path': user_list.path})
-        return results
-
-    def _build_query(self):
-        ul = IUserRoleList(self.request)
-        return self.context.build_query(ul)
+            yield {'user': user,
+                   'role': role,
+                   'path': user_list.path}
 
 
 class SecurityConfigForm(silvaforms.ZMIComposedForm):
