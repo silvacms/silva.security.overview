@@ -39,7 +39,7 @@ class TestBase(SilvaTestCase.SilvaTestCase):
         super(TestBase, self).afterSetUp()
         self.installExtension('SilvaSecurityOverview')
         self.service = self.root.service_securityoverview
-        self.service.role_ignored = set(['Owner'])
+        self.service.ignored_roles = set(['Owner'])
 
     def beforeTeadown(self):
         super(TestBase, self).beforeTeadown()
@@ -72,7 +72,7 @@ class TestIndexing(TestBase):
             ' show up in the results when querying for user')
 
     def test_ignored_roles(self):
-        self.service.role_ignored.add('Reader')
+        self.service.ignored_roles.add('Reader')
         self.service.cleanup()
         self.publication.sec_assign(user_dummy, 'Viewer')
         self.publication.sec_assign(user_dummy, 'Reader')

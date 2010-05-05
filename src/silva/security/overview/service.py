@@ -18,11 +18,13 @@ from silva.core.services.base import SilvaService
 from silva.core.services.utils import walk_silva_tree
 from silva.core import conf as silvaconf
 
-from silva.security.overview.interfaces import ISecurityOverviewService
+from silva.security.overview.interfaces import (ISecurityOverviewService,
+    ISecurityOverviewConfiguration)
 from silva.core.interfaces import (ISecurityRoleAddedEvent,
     ISecurityRoleRemovedEvent, ISilvaObject)
 from silva.security.overview.interfaces import IUserRoleList
 from silva.core.views import views as silvaviews
+from zeam.form import silva as silvaforms
 from zeam.utils.batch.interfaces import IBatching
 
 from logging import getLogger
@@ -85,7 +87,7 @@ class UserList(grok.Adapter):
         role_set = set()
         for roles in self.context.__ac_local_roles__.values():
             for role in roles:
-                if role not in self.service.role_ignored:
+                if role not in self.service.ignored_roles:
                     role_set.add(role)
         return role_set
 
@@ -94,7 +96,7 @@ class UserList(grok.Adapter):
         users_roles = []
         for user, roles in self.context.__ac_local_roles__.iteritems():
             for role in roles:
-                if role not in self.service.role_ignored:
+                if role not in self.service.ignored_roles:
                     users_roles.append((user, role,))
         return users_roles
 
@@ -111,7 +113,7 @@ class SecurityOverviewService(SilvaService):
     default_service_identifier = 'silva_securityoverview'
     silvaconf.icon('service.png')
 
-    role_ignored = set(['Owner'])
+    ignored_roles = set(['Owner'])
 
     manage_options = (
         {'label':'Security overview', 'action':'manage_main'},
@@ -266,6 +268,7 @@ class Cycle(object):
 class SecurityOverView(silvaviews.ZMIView):
     name = 'manage_main'
     grok.name(name)
+    grok.context(ISecurityOverviewService)
 
     def update(self):
         catalog = self.context.catalog
@@ -314,19 +317,32 @@ class SecurityOverView(silvaviews.ZMIView):
         return self.context.build_query(ul)
 
 
-class SecurityConfig(silvaviews.ZMIView):
+class SecurityConfigForm(silvaforms.ZMIComposedForm):
+
     grok.name('manage_config')
+    grok.context(ISecurityOverviewConfiguration)
 
-    message = ''
+    label = u"Configuration"
+    description = u"Configure security overview service"
 
-    def update(self):
-        if self.request.method.upper() == 'POST':
-            if self.request.get('rebuild'):
-                count = self.context.build()
-                self.message = '%d objects indexed.' % count
-            if self.request.get('ignored'):
-                roles = self.request.get('ignore_list', '').rstrip()
-                role_list = roles.split(',')
-                self.service.role_ignored = role_list
 
+class RebuildCatalog(silvaforms.SubForm):
+    silvaforms.view(SecurityConfigForm)
+
+    label = u"Reindex roles information of the whole silva tree"
+
+    @silvaforms.action('Rebuild')
+    def rebuild_index(self):
+        count = self.context.build()
+        self.status = '%d objects indexed.' % count
+        return silvaforms.SUCCESS
+
+
+class SecurityServiceConfiguration(silvaforms.SubForm):
+    silvaforms.view(SecurityConfigForm)
+
+    label = u"Configure security overview service options"
+    actions = silvaforms.Actions(silvaforms.EditAction(u"Update"))
+    fields = silvaforms.Fields(ISecurityOverviewConfiguration)
+    ignoreContent = False
 

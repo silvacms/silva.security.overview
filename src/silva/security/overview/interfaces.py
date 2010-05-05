@@ -1,8 +1,15 @@
 from zope.interface import Interface, Attribute
+from zope.schema import Set, TextLine
 from silva.core.services.interfaces import ISilvaService
 
 
-class ISecurityOverviewService(ISilvaService):
+class ISecurityOverviewConfiguration(Interface):
+    ignored_roles = Set(title=u'Ignored roles',
+        value_type=TextLine())
+
+
+class ISecurityOverviewService(ISilvaService,
+                               ISecurityOverviewConfiguration):
     """ Interface for security overview service
     """
 
