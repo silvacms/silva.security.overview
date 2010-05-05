@@ -29,9 +29,6 @@ from logging import getLogger
 logger = getLogger('silva.security.overview.service')
 
 
-_role_ignore_set = set() #set(['Owner'])
-
-
 class RequestUserList(grok.Adapter):
     grok.context(IBrowserRequest)
     grok.implements(IUserRoleList)
@@ -75,6 +72,10 @@ class UserList(grok.Adapter):
     grok.implements(IUserRoleList)
     grok.provides(IUserRoleList)
 
+    def __init__(self, context):
+        super(UserList, self).__init__(context)
+        self.service = getUtility(ISecurityOverviewService)
+
     @CachedProperty
     def users(self):
         return self.context.__ac_local_roles__.keys()
@@ -84,7 +85,7 @@ class UserList(grok.Adapter):
         role_set = set()
         for roles in self.context.__ac_local_roles__.values():
             for role in roles:
-                if role not in _role_ignore_set:
+                if role not in self.service.role_ignored:
                     role_set.add(role)
         return role_set
 
@@ -93,7 +94,7 @@ class UserList(grok.Adapter):
         users_roles = []
         for user, roles in self.context.__ac_local_roles__.iteritems():
             for role in roles:
-                if role not in _role_ignore_set:
+                if role not in self.service.role_ignored:
                     users_roles.append((user, role,))
         return users_roles
 
@@ -109,6 +110,8 @@ class SecurityOverviewService(SilvaService):
     grok.implements(ISecurityOverviewService)
     default_service_identifier = 'silva_securityoverview'
     silvaconf.icon('service.png')
+
+    role_ignored = set(['Owner'])
 
     manage_options = (
         {'label':'Security overview', 'action':'manage_main'},
@@ -185,14 +188,6 @@ def role_removed(ob, event):
     if service:
         service.index_object(ob)
 
-@grok.subscribe(ISecurityOverviewService, IObjectCreatedEvent)
-def configure_security_overview_service(service, event):
-    """Configure the reference after it have been created. Register
-    the relation catalog to the root local site.
-    """
-    root = service.get_root()
-    sm = root.getSiteManager()
-    sm.registerUtility(service.catalog, ICatalog)
 
 @grok.subscribe(ISilvaObject, IIntIdRemovedEvent)
 def object_removed(ob, event):
@@ -329,5 +324,9 @@ class SecurityConfig(silvaviews.ZMIView):
             if self.request.get('rebuild'):
                 count = self.context.build()
                 self.message = '%d objects indexed.' % count
+            if self.request.get('ignored'):
+                roles = self.request.get('ignore_list', '').rstrip()
+                role_list = roles.split(',')
+                self.service.role_ignored = role_list
 
 
