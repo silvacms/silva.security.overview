@@ -1,17 +1,12 @@
 from five import grok
 
-from zope.component import getUtility, queryUtility, queryMultiAdapter
+from zope.component import getUtility, queryMultiAdapter
 from zope.intid.interfaces import IIntIds
 
 from silva.security.overview.catalog import Catalog
 from zope.catalog.keyword import KeywordIndex
-from zope.catalog.field import FieldIndex
 from silva.security.overview.index import PathIndex
 
-from zope.catalog.interfaces import ICatalog, INoAutoIndex
-from zope.lifecycleevent.interfaces import IObjectCreatedEvent
-from zope.intid.interfaces import IIntIdAddedEvent, IIntIdRemovedEvent
-from zope.publisher.interfaces.browser import IBrowserRequest
 from zope.cachedescriptors.property import CachedProperty
 
 from silva.core.services.base import SilvaService
@@ -20,12 +15,10 @@ from silva.core import conf as silvaconf
 
 from silva.security.overview.interfaces import (ISecurityOverviewService,
     ISecurityOverviewConfiguration)
-from silva.core.interfaces import (ISecurityRoleAddedEvent,
-    ISecurityRoleRemovedEvent, ISilvaObject)
 from silva.security.overview.interfaces import IUserRoleList
-from silva.core.views import views as silvaviews
 from zeam.form import silva as silvaforms
 from zeam.utils.batch.interfaces import IBatching
+from silva.core.interfaces import ISilvaObject
 
 from logging import getLogger
 logger = getLogger('silva.security.overview.service')
@@ -110,6 +103,8 @@ class SecurityOverviewService(SilvaService):
             if role_list.roles:
                 self.catalog.index_doc(intid, ob)
                 return ob
+            else:
+                self.catalog.unindex_doc(intid)
             return None
         except KeyError:
             return None
@@ -134,37 +129,6 @@ class SecurityOverviewService(SilvaService):
         catalog['users_roles'] = KeywordIndex('users_roles', IUserRoleList, False)
         catalog['path'] = PathIndex('path', IUserRoleList, False)
         return catalog
-
-
-@grok.subscribe(ISilvaObject, ISecurityRoleAddedEvent)
-def role_added(ob, event):
-    logger.info("event role add on %s" % "/".join(ob.getPhysicalPath()))
-    if INoAutoIndex.providedBy(ob): return
-    service = queryUtility(ISecurityOverviewService)
-    if service:
-        service.index_object(ob)
-
-@grok.subscribe(ISilvaObject, ISecurityRoleRemovedEvent)
-def role_removed(ob, event):
-    logger.info("event role remove on %s" % "/".join(ob.getPhysicalPath()))
-    if INoAutoIndex.providedBy(ob): return
-    service = queryUtility(ISecurityOverviewService)
-    if service:
-        service.index_object(ob)
-
-@grok.subscribe(ISilvaObject, IIntIdRemovedEvent)
-def object_removed(ob, event):
-    service = queryUtility(ISecurityOverviewService)
-    intids = queryUtility(IIntIds)
-    if intids and service:
-        service.catalog.unindex_doc(intids.getId(ob))
-
-@grok.subscribe(ISilvaObject, IIntIdAddedEvent)
-def object_added(ob, event):
-    service = queryUtility(ISecurityOverviewService)
-    intids = queryUtility(IIntIds)
-    if intids and service:
-        service.index_object(intids.getId(ob))
 
 
 class Cycle(object):

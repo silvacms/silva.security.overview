@@ -130,6 +130,7 @@ class TestIndexing(TestBase):
             ' show up in the results when querying for user editor')
 
         self.publication.sec_remove(user_editor)
+        results = self.service.catalog.searchResults(users=user_editor)
         self.assertTrue(self.publication not in results,
             'publication should not show up in the results anymore')
 
