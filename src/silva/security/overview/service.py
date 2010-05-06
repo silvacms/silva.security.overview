@@ -158,6 +158,11 @@ def _validate_search(form):
             and data['role'] is silvaforms.NO_VALUE:
         raise silvaforms.ActionError(
             'please provide at least a user or a role')
+    if data['path'] is not silvaforms.NO_VALUE:
+        root_path = "/".join(form.context.get_root().getPhysicalPath())
+        if not (data['path'].startswith(root_path)):
+            raise silvaforms.ActionError(
+                'Path is invalid. It should start with %s' % root_path)
     return True
 
 class SecurityOverView(silvaforms.ZMIForm):
