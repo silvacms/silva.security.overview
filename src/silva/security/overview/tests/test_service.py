@@ -1,14 +1,6 @@
 import unittest
-from zope.component import queryUtility
-from Testing.ZopeTestCase.layer import onsetup as ZopeLiteLayerSetup
-from Products.Five import zcml
 
-from Products.Silva.tests import SilvaTestCase
-from Products.Silva.tests.layer import installPackage, SilvaLayer
-
-
-from zope.interface.verify import verifyClass
-from silva.security.overview.service import UserList, SecurityOverviewService
+from zope.interface.verify import verifyObject
 from silva.security.overview import interfaces
 
 from zope.component import getUtility
@@ -17,52 +9,46 @@ from zope.intid.interfaces import IIntIds
 from Products.Silva.tests.SilvaTestCase import user_dummy
 from Products.Silva.tests.SilvaTestCase import user_editor
 
+from Products.Silva.testing import SilvaLayer
+import silva.security.overview
+import transaction
 
-class SecurityOverviewLayer(SilvaLayer):
+class SilvaSecurityOverviewLayer(SilvaLayer):
 
-    @classmethod
-    def setUp(cls):
-        import silva.security.overview
-        installPackage('silva.security.overview')
-        zcml.load_config('configure.zcml', silva.security.overview)
-
-    @classmethod
-    def tearDown(cls):
-        pass
+    def _install_application(self, app):
+        super(SilvaSecurityOverviewLayer, self)._install_application(app)
+        app.root.service_extensions.install('SilvaSecurityOverview')
+        transaction.commit()
 
 
-class TestBase(SilvaTestCase.SilvaTestCase):
+class TestBase(unittest.TestCase):
 
-    layer = SecurityOverviewLayer
+    layer = SilvaSecurityOverviewLayer(
+                silva.security.overview,
+                zcml_file='configure.zcml')
 
-    def afterSetUp(self):
-        super(TestBase, self).afterSetUp()
-        self.installExtension('SilvaSecurityOverview')
+    def setUp(self):
+        self.root = self.layer.get_application()
         self.service = self.root.service_securityoverview
         self.service.ignored_roles = set(['Owner'])
-
-    def beforeTeadown(self):
-        super(TestBase, self).beforeTeadown()
-        self.uninstallExtension('SilvaSecurityOverview')
 
 
 class TestSecurityOverviewService(TestBase):
 
-    def test_interfaces_compliance(self):
-        self.assertTrue(verifyClass(interfaces.IUserRoleList, UserList))
-        self.assertTrue(verifyClass(interfaces.ISecurityOverviewService,
-            SecurityOverviewService))
-
     def test_utility_registration(self):
         self.assertTrue(hasattr(self.root, 'service_securityoverview'))
-        self.assertTrue(getUtility(interfaces.ISecurityOverviewService))
+        utility = getUtility(interfaces.ISecurityOverviewService)
+        self.assertEquals(utility, self.root.service_securityoverview)
+        self.assertTrue(verifyObject(interfaces.ISecurityOverviewService,
+            utility))
 
 
 class TestIndexing(TestBase):
 
-    def afterSetUp(self):
-        super(TestIndexing, self).afterSetUp()
-        self.add_publication(self.root, 'pub', 'Publication')
+    def setUp(self):
+        super(TestIndexing, self).setUp()
+        factory = self.root.manage_addProduct['Silva']
+        factory.manage_addPublication('pub', 'Publication')
         self.publication = self.root.pub
 
     def test_user_is_indexed(self):
@@ -144,7 +130,8 @@ class TestIndexing(TestBase):
             ' show up in the results when querying for user editor')
 
         self.publication.sec_remove(user_editor)
-        self.assertTrue(self.publication not in results)
+        self.assertTrue(self.publication not in results,
+            'publication should not show up in the results anymore')
 
     def test_object_removal(self):
         self.publication.sec_assign(user_editor, 'Editor')

@@ -122,13 +122,15 @@ class SecurityOverviewService(SilvaService):
         if user:
             query['users'] = user
         if role:
-            query['roles'] = {'query': role, 'operator': 'or'}
+            query['roles'] = role
         if path:
             query['path'] = {'query': path, 'include_path': True}
         return query
 
     def _build_catalog(self):
         catalog = Catalog()
+        catalog['users'] = KeywordIndex('users', IUserRoleList, False)
+        catalog['roles'] = KeywordIndex('roles', IUserRoleList, False)
         catalog['users_roles'] = KeywordIndex('users_roles', IUserRoleList, False)
         catalog['path'] = PathIndex('path', IUserRoleList, False)
         return catalog
@@ -149,7 +151,6 @@ def role_removed(ob, event):
     service = queryUtility(ISecurityOverviewService)
     if service:
         service.index_object(ob)
-
 
 @grok.subscribe(ISilvaObject, IIntIdRemovedEvent)
 def object_removed(ob, event):
@@ -191,7 +192,8 @@ def _validate_search(form):
     data, errors = form.extractData()
     if data['user'] is silvaforms.NO_VALUE \
             and data['role'] is silvaforms.NO_VALUE:
-        return False
+        raise silvaforms.ActionError(
+            'please provide at least a user or a role')
     return True
 
 class SecurityOverView(silvaforms.ZMIForm):

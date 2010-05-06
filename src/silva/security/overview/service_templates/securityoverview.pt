@@ -3,77 +3,100 @@
       xmlns:tal="http://xml.zope.org/namespaces/tal"
       xmlns:i18n="http://xml.zope.org/namespaces/i18n"
       metal:use-macro="context/@@standard_macros/page">
-
   <body>
     <div metal:fill-slot="body">
+      <form action="." tal:attributes="action view/form_path" method="get"
+            enctype="multipart/form-data">
 
-    <h1>Security overview</h1>
+        <h1 tal:condition="view/label"
+            tal:content="view/label">Label</h1>
 
-    <form tal:attributes="action view/form_path" method="get">
-        <fieldset>
-            <table>
-                <tr>
-                    <td><label for="path">Path</label></td>
-                    <td>
-                        <input type="text" name="path" size="60"
-                        tal:attributes="value python: request.get('path', view.root_path)" />
-                    </td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td><label for="path">Roles</label></td>
-                    <td>
-                        <input type="text" name="roles" size="60"
-                        tal:attributes="value python: request.get('roles')" />
-                    </td>
-                    <td>Roles comma separated</td>
-                </tr>
-                <tr>
-                    <td><label for="path">User</label></td>
-                    <td>
-                        <input type="text" name="user" size="60"
-                        tal:attributes="value python: request.get('user')" />
-                    </td>
-                    <td></td>
-                </tr>
-            </table>
-            <div>
-                <input type="submit" value="search" />
-            </div>
-        </fieldset>
-    </form>
+        <p tal:condition="view/description"
+           tal:content="view/description">Description</p>
 
-    <div class="message" tal:condition="python: not(view.entries)">
-        No information available.
-    </div>
+        <p class="form-status"
+           tal:condition="view/status"
+           tal:content="view/status">Status</p>
 
-    <div class="nav" tal:content="structure view/batch" />
+        <p class="form-error"
+           tal:condition="view/errors">
+          There were errors:
+          <tal:error tal:define="formError view/formError"
+                     tal:condition="formError">
+            <br />
+            <span tal:replace="formError/title" />
+          </tal:error>
+        </p>
 
-    <table style="width: 100%" class="results" tal:condition="view/entries">
-        <tr class="list-header">
-            <td><div class="list-item">user</div></td>
-            <td><div class="list-item">role</div></td>
-        </tr>
-        <tal:block tal:repeat="entry view/entries">
-            <tr class="row-hilite">
-                <td style="border-top: 1px solid #ccc" colspan="2">
-                    <a 
-                        tal:attributes="href python: view.smi_security_url(entry)"
-                        tal:content="python: '/'.join(entry.getPhysicalPath())" />
-                </td>
-            </tr>
-            <tal:block tal:repeat="data python: view.unpack_entry(entry)">
-            <tr class="row-normal">
-                <td><div tal:content="python: data['user']" /></td>
-                <td><div tal:content="python: data['role']" /></td>
-            </tr>
-            </tal:block>
-        </tal:block>
-    </table>
+        <div class="fields"
+             tal:condition="view/fieldWidgets">
+          <div class="field" tal:repeat="widget view/fieldWidgets">
+            <label class="field-label" for="#"
+                   tal:attributes="for widget/htmlId"
+                   tal:content="widget/title">
+              Label
+            </label>
+            <span class="field-required"
+                  tal:condition="widget/required">(required)</span>
+            <br />
+            <tal:description tal:condition="widget/description">
+              <span class="field-description"
+                    tal:content="widget/description">
+              </span><br />
+            </tal:description>
+            <tal:error tal:define="error widget/error"
+                       tal:condition="error">
+              <span class="field-error"
+                    tal:content="error/title">
+                Error
+              </span>
+              <br />
+            </tal:error>
+            <tal:widget tal:content="structure widget/render" />
+          </div>
+        </div>
 
-    <div class="nav" tal:content="structure view/batch" />
+        <div class="actions"
+             tal:condition="view/actionWidgets">
+          <div class="action" tal:repeat="widget view/actionWidgets">
+            <tal:widget tal:content="structure widget/render" />
+          </div>
+        </div>
 
+      </form>
 
+      <div class="message" tal:condition="python: not(view.entries)">
+          No information available.
+      </div>
+
+      <tal:block tal:condition="view/entries">
+
+      <div class="nav" tal:content="structure view/batch" />
+
+      <table style="width: 100%" class="results">
+          <tr class="list-header">
+              <td><div class="list-item">user</div></td>
+              <td><div class="list-item">role</div></td>
+          </tr>
+          <tal:block tal:repeat="entry view/entries">
+              <tr class="row-hilite">
+                  <td style="border-top: 1px solid #ccc" colspan="2">
+                      <a 
+                          tal:attributes="href python: view.smi_security_url(entry)"
+                          tal:content="python: '/'.join(entry.getPhysicalPath())" />
+                  </td>
+              </tr>
+              <tal:block tal:repeat="data python: view.unpack_entry(entry)">
+              <tr class="row-normal">
+                  <td><div tal:content="python: data['user']" /></td>
+                  <td><div tal:content="python: data['role']" /></td>
+              </tr>
+              </tal:block>
+          </tal:block>
+      </table>
+
+      <div class="nav" tal:content="structure view/batch" />
+      </tal:block>
     </div>
   </body>
 </html>
