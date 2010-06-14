@@ -32,28 +32,24 @@ class UserList(grok.Adapter):
     def __init__(self, context):
         super(UserList, self).__init__(context)
         self.service = getUtility(ISecurityOverviewService)
+        self.users = context.sec_get_local_defined_userids()
+        self.users_roles = self.__get_users_roles()
 
-    @CachedProperty
-    def users(self):
-        return self.context.__ac_local_roles__.keys()
+    def __get_users_roles(self):
+        results = []
+        for user in self.users:
+            roles = self.context.sec_get_local_roles_for_userid(user)
+            for role in roles:
+                if role not in self.service.ignored_roles:
+                    results.append((user, role,))
+        return results
 
     @CachedProperty
     def roles(self):
         role_set = set()
-        for roles in self.context.__ac_local_roles__.values():
-            for role in roles:
-                if role not in self.service.ignored_roles:
-                    role_set.add(role)
+        for (user, role,) in self.users_roles:
+            role_set.add(role)
         return role_set
-
-    @CachedProperty
-    def users_roles(self):
-        users_roles = []
-        for user, roles in self.context.__ac_local_roles__.iteritems():
-            for role in roles:
-                if role not in self.service.ignored_roles:
-                    users_roles.append((user, role,))
-        return users_roles
 
     @CachedProperty
     def path(self):
@@ -223,7 +219,6 @@ class SecurityOverView(silvaforms.ZMIForm):
         return c.cycle()
 
     def unpack_entry(self, entry):
-        results = []
         user_list = IUserRoleList(entry)
         for user, role in user_list.users_roles:
             yield {'user': user,
