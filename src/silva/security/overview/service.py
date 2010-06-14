@@ -64,7 +64,7 @@ class SecurityOverviewService(SilvaService):
     default_service_identifier = 'silva_securityoverview'
     silvaconf.icon('service.png')
 
-    ignored_roles = set(['Owner'])
+    ignored_roles = set()
 
     manage_options = (
         {'label':'Security overview', 'action':'manage_main'},
