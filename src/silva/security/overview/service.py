@@ -178,6 +178,7 @@ class SecurityOverView(silvaforms.ZMIForm):
     def search(self):
         catalog = self.context.catalog
         data, errors = self.extractData()
+        self.data = data
         if errors:
             return silvaforms.FAILURE
 
@@ -223,7 +224,18 @@ class SecurityOverView(silvaforms.ZMIForm):
         for user, role in user_list.users_roles:
             yield {'user': user,
                    'role': role,
-                   'path': user_list.path}
+                   'path': user_list.path,
+                   'hilite': self._hilite(user, role)}
+
+    def _hilite(self, user, role):
+        hi = []
+        if not hasattr(self, 'data'):
+            return hi
+        if self.data['user'] == user:
+            hi.append('user')
+        if self.data['role'] == role:
+            hi.append('role')
+        return hi
 
 
 class SecurityConfigForm(silvaforms.ZMIComposedForm):
