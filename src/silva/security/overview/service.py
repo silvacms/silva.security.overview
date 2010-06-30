@@ -1,3 +1,5 @@
+import csv
+
 from five import grok
 
 from zope.component import getUtility, queryMultiAdapter
@@ -19,6 +21,10 @@ from silva.security.overview.interfaces import IUserRoleList
 from zeam.form import silva as silvaforms
 from zeam.utils.batch.interfaces import IBatching
 from silva.core.interfaces import ISilvaObject
+from silva.core.views.views import ZMIView
+
+from Products.Silva import roleinfo
+
 
 from logging import getLogger
 logger = getLogger('silva.security.overview.service')
@@ -122,7 +128,8 @@ class SecurityOverviewService(SilvaService):
         catalog = Catalog()
         catalog['users'] = KeywordIndex('users', IUserRoleList, False)
         catalog['roles'] = KeywordIndex('roles', IUserRoleList, False)
-        catalog['users_roles'] = KeywordIndex('users_roles', IUserRoleList, False)
+        catalog['users_roles'] = KeywordIndex(
+            'users_roles', IUserRoleList, False)
         catalog['path'] = PathIndex('path', IUserRoleList, False)
         return catalog
 
@@ -266,4 +273,42 @@ class SecurityServiceConfiguration(silvaforms.SubForm):
     actions = silvaforms.Actions(silvaforms.EditAction(u"Update"))
     fields = silvaforms.Fields(ISecurityOverviewConfiguration)
     ignoreContent = False
+
+
+class SecurityServiceExporter(silvaforms.SubForm):
+    silvaforms.view(SecurityConfigForm)
+
+    label = u'Export the list of permission to CSV'
+
+    @silvaforms.action(u'export')
+    def export(self):
+        self.redirect(self.context.absolute_url()  + '/manage_export')
+
+
+class ExportView(ZMIView):
+    grok.context(ISecurityOverviewService)
+    grok.name('manage_export')
+
+    field_names = ['path', 'user', 'role']
+
+    def render(self):
+        response = self.request.response
+        response.setHeader('Content-Type', 'text/csv')
+        response.setHeader('Content-Disposition',
+                           'attachment; filename=silva_user_role.csv')
+
+        data = self.context.catalog.searchResults(
+            _sort_index='path',
+            roles={'query': roleinfo.ASSIGNABLE_ROLES,
+                   'operator': 'or'})
+        writer = csv.DictWriter(response,
+                                self.field_names,
+                                extrasaction='ignore')
+        writer.writerow(dict([(f,f,) for f in self.field_names]))
+        for item in data:
+            user_list = IUserRoleList(item)
+            for user, role in user_list.users_roles:
+                writer.writerow({'path':user_list.path,
+                                 'user':user,
+                                 'role':role})
 

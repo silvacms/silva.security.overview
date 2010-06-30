@@ -16,7 +16,8 @@ class Catalog(Zope3Catalog):
             if sort_index is not None:
                 index = self[sort_index]
                 if not zope.index.interfaces.IIndexSort.providedBy(index):
-                    raise ValueError('Index %s does not support sorting.' % sort_index)
+                    raise ValueError('Index %s does not support sorting.' %
+                                     sort_index)
                 results = list(index.sort(results, reverse=reverse))
             else:
                 if reverse:

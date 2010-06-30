@@ -149,10 +149,54 @@ class TestIndexing(TestBase):
             ' not appear anymore in the results')
 
 
+from Products.Silva.tests.layer import SilvaFunctionalLayer
+from Products.Silva.testing import http
+from StringIO import StringIO
+
+
+class TestCSVExport(TestBase):
+
+    def setUp(self):
+        self.root = self.layer.get_application()
+        factory = self.root.manage_addProduct["Silva"]
+        factory.manage_addPublication('pub', 'Publication')
+        factory.manage_addFile('file', 'File', StringIO())
+        factory = self.root.pub.manage_addProduct["Silva"]
+        factory.manage_addFile('file', 'File', StringIO())
+
+        self.root.pub.sec_assign(user_dummy, 'Reader')
+        self.root.pub.sec_assign(user_dummy, 'Editor')
+        self.root.file.sec_assign(user_editor, 'Viewer ++')
+        self.root.pub.file.sec_assign(user_editor, 'Viewer')
+        self.root.pub.file.sec_assign(user_dummy, 'Reader')
+
+    def test_csv_unauthorized_export(self):
+        response = http(
+            'GET /root/service_securityoverview/manage_export HTTP/1.1',
+            parsed=True)
+        self.assertEquals(401, response.getStatus())
+
+    def test_csv_export(self):
+        response = http(
+            "GET /root/service_securityoverview/manage_export HTTP/1.1\n" \
+            "Authorization: Basic manager:manager",
+            parsed=True)
+        self.assertEquals(200, response.getStatus())
+        self.assertEquals(
+"""path,user,role
+/root/file,editor,Viewer ++
+/root/pub,dummy,Reader
+/root/pub,dummy,Editor
+/root/pub/file,dummy,Reader
+/root/pub/file,editor,Viewer
+""".replace("\n", "\r\n"), response.getBody())
+
+
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(TestSecurityOverviewService))
     suite.addTest(unittest.makeSuite(TestIndexing))
+    suite.addTest(unittest.makeSuite(TestCSVExport))
     return suite
 
 
