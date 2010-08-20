@@ -1,32 +1,34 @@
+# -*- coding: utf-8 -*-
+# Copyright (c) 2010 Infrae. All rights reserved.
+# See also LICENSE.txt
+
 import csv
+from logging import getLogger
 
 from five import grok
-
+from zope.cachedescriptors.property import CachedProperty
+from zope.catalog.keyword import KeywordIndex
 from zope.component import getUtility, queryMultiAdapter
 from zope.intid.interfaces import IIntIds
 
-from silva.security.overview.catalog import Catalog
-from zope.catalog.keyword import KeywordIndex
-from silva.security.overview.index import PathIndex
-
-from zope.cachedescriptors.property import CachedProperty
-
+from silva.core import conf as silvaconf
+from silva.core.interfaces import ISilvaObject
+from silva.core.interfaces import IUserAccessSecurity
 from silva.core.services.base import SilvaService
 from silva.core.services.utils import walk_silva_tree
-from silva.core import conf as silvaconf
-
-from silva.security.overview.interfaces import (ISecurityOverviewService,
-    ISecurityOverviewConfiguration)
+from silva.core.views.views import ZMIView
+from silva.security.overview.catalog import Catalog
+from silva.security.overview.index import PathIndex
+from silva.security.overview.interfaces import ISecurityOverviewConfiguration
+from silva.security.overview.interfaces import ISecurityOverviewService
 from silva.security.overview.interfaces import IUserRoleList
+
 from zeam.form import silva as silvaforms
 from zeam.utils.batch.interfaces import IBatching
-from silva.core.interfaces import ISilvaObject
-from silva.core.views.views import ZMIView
+
 
 from Products.Silva import roleinfo
 
-
-from logging import getLogger
 logger = getLogger('silva.security.overview.service')
 
 
@@ -37,25 +39,22 @@ class UserList(grok.Adapter):
 
     def __init__(self, context):
         super(UserList, self).__init__(context)
-        self.service = getUtility(ISecurityOverviewService)
-        self.users = context.sec_get_local_defined_userids()
-        self.users_roles = self.__get_users_roles()
+        settings = getUtility(ISecurityOverviewService)
+        access = IUserAccessSecurity(context)
 
-    def __get_users_roles(self):
-        results = []
-        for user in self.users:
-            roles = self.context.sec_get_local_roles_for_userid(user)
-            for role in roles:
-                if role not in self.service.ignored_roles:
-                    results.append((user, role,))
-        return results
+        self.roles = set()
+        self.users = []
+        self.users_roles = []
 
-    @CachedProperty
-    def roles(self):
-        role_set = set()
-        for (user, role,) in self.users_roles:
-            role_set.add(role)
-        return role_set
+        accesses = access.get_authorizations(dont_acquire=True)
+        for user_id, authorization in accesses.iteritems():
+            role = authorization.local_role
+            if role in settings.ignored_roles:
+                continue
+
+            self.users.append(user_id)
+            self.users_roles.append((user_id, role,))
+            self.roles.add(role)
 
     @CachedProperty
     def path(self):
