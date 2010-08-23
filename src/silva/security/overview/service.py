@@ -46,7 +46,7 @@ class UserList(grok.Adapter):
         self.users = []
         self.users_roles = []
 
-        accesses = access.get_authorizations(dont_acquire=True)
+        accesses = access.get_defined_authorizations(dont_acquire=True)
         for user_id, authorization in accesses.iteritems():
             role = authorization.local_role
             if role in settings.ignored_roles:
