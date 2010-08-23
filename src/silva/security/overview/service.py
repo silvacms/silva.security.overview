@@ -247,13 +247,15 @@ class SecurityConfigForm(silvaforms.ZMIComposedForm):
     grok.context(ISecurityOverviewConfiguration)
 
     label = u"Configuration"
-    description = u"Configure security overview service"
+    description = u"Configure security overview service."
 
 
-class RebuildCatalog(silvaforms.SubForm):
+class RebuildCatalog(silvaforms.ZMISubForm):
     silvaforms.view(SecurityConfigForm)
 
-    label = u"Reindex roles information of the whole silva tree"
+    label = u"Reindex"
+    description = u"Go through the whole Silva site to "\
+        u"reindex currently set permissions."
 
     @silvaforms.action('Rebuild')
     def rebuild_index(self):
@@ -262,12 +264,13 @@ class RebuildCatalog(silvaforms.SubForm):
         return silvaforms.SUCCESS
 
 
-class SecurityServiceExporter(silvaforms.SubForm):
+class SecurityServiceExporter(silvaforms.ZMISubForm):
     silvaforms.view(SecurityConfigForm)
 
-    label = u'Export the list of permission to CSV'
+    label = u'Export'
+    description = u'Export all current permissions into a CSV file.'
 
-    @silvaforms.action(u'export')
+    @silvaforms.action(u'Export')
     def export(self):
         self.redirect(self.context.absolute_url()  + '/manage_export')
 
