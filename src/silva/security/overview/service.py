@@ -11,6 +11,7 @@ from zope.catalog.keyword import KeywordIndex
 from zope.component import getUtility, queryMultiAdapter
 from zope.intid.interfaces import IIntIds
 
+
 from silva.core import conf as silvaconf
 from silva.core.interfaces import ISilvaObject
 from silva.core.interfaces import IUserAccessSecurity
@@ -39,7 +40,6 @@ class UserList(grok.Adapter):
 
     def __init__(self, context):
         super(UserList, self).__init__(context)
-        settings = getUtility(ISecurityOverviewService)
         access = IUserAccessSecurity(context)
 
         self.roles = set()
@@ -49,9 +49,6 @@ class UserList(grok.Adapter):
         accesses = access.get_defined_authorizations(dont_acquire=True)
         for user_id, authorization in accesses.iteritems():
             role = authorization.local_role
-            if role in settings.ignored_roles:
-                continue
-
             self.users.append(user_id)
             self.users_roles.append((user_id, role,))
             self.roles.add(role)
@@ -68,8 +65,6 @@ class SecurityOverviewService(SilvaService):
     grok.implements(ISecurityOverviewService)
     default_service_identifier = 'silva_securityoverview'
     silvaconf.icon('service.png')
-
-    ignored_roles = set()
 
     manage_options = (
         {'label':'Security overview', 'action':'manage_main'},
@@ -154,6 +149,7 @@ class Cycle(object):
     def __len__(self):
         return len(self.values)
 
+
 def _validate_search(form):
     data, errors = form.extractData()
     if data['user'] is silvaforms.NO_VALUE \
@@ -166,6 +162,7 @@ def _validate_search(form):
             raise silvaforms.ActionError(
                 'Path is invalid. It should start with %s' % root_path)
     return True
+
 
 class SecurityOverView(silvaforms.ZMIForm):
     name = 'manage_main'
@@ -265,15 +262,6 @@ class RebuildCatalog(silvaforms.SubForm):
         return silvaforms.SUCCESS
 
 
-class SecurityServiceConfiguration(silvaforms.SubForm):
-    silvaforms.view(SecurityConfigForm)
-
-    label = u"Configure security overview service options"
-    actions = silvaforms.Actions(silvaforms.EditAction(u"Update"))
-    fields = silvaforms.Fields(ISecurityOverviewConfiguration)
-    ignoreContent = False
-
-
 class SecurityServiceExporter(silvaforms.SubForm):
     silvaforms.view(SecurityConfigForm)
 
@@ -310,4 +298,3 @@ class ExportView(ZMIView):
                 writer.writerow({'path':user_list.path,
                                  'user':user,
                                  'role':role})
-

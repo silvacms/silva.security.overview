@@ -34,7 +34,6 @@ class TestBase(unittest.TestCase):
         self.root = self.layer.get_application()
         self.layer.login('manager')
         self.service = self.root.service_securityoverview
-        self.service.ignored_roles = set(['Owner'])
 
     def add_roles(self, content, user, *roles):
         access =  IUserAccessSecurity(content)
@@ -74,41 +73,31 @@ class TestIndexing(TestBase):
         self.assertTrue(self.publication in results, 'publication should'
             ' show up in the results when querying for user')
 
-    def test_ignored_roles(self):
-        self.service.ignored_roles.add('Reader')
-        self.service.cleanup()
-
-        self.add_roles(self.publication, 'dummy', 'Viewer', 'Reader')
-
-        results = self.service.catalog.searchResults(roles='Reader')
-        self.assertTrue(
-            self.publication not in results,
-            'publication should not show up in results since role is ignored')
-
-        results = self.service.catalog.searchResults(roles='Viewer')
-        self.assertTrue(self.publication in results, 'publication should'
-            ' show up in results since role is NOT ignored')
-
     def test_roles_are_indexed(self):
-        self.add_roles(self.publication, 'dummy', 'Reader', 'Editor')
+        self.add_roles(self.publication, 'dummy', 'Editor')
+        self.add_roles(self.publication, 'viewer', 'Reader')
+
+        results = self.service.catalog.searchResults(roles=['Editor'])
+        self.assertTrue(
+            self.publication in results,
+            'publication should show up when querying for user')
 
         results = self.service.catalog.searchResults(roles=['Reader'])
-        self.assertTrue(self.publication in results, 'publication should'
-            ' show up in the results when querying for user')
-
-        results = self.service.catalog.searchResults(roles=['Reader'])
-        self.assertTrue(self.publication in results, 'publication should'
-            ' show up in the results when querying for one of the roles')
+        self.assertTrue(
+            self.publication in results,
+            'publication should show up when querying for one of the roles')
 
         results = self.service.catalog.searchResults(
             roles=['Reader', 'Editor'])
-        self.assertTrue(self.publication in results, 'publication should'
-            ' show up in the results when querying for both roles')
+        self.assertTrue(
+            self.publication in results,
+            'publication should show up when querying for both roles')
 
         results = self.service.catalog.searchResults(
-            roles={'query': ['Reader', 'ChiefEditor'], 'operator': 'or'})
-        self.assertTrue(self.publication in results, 'publication should'
-            ' show up in the results when querying for one matching role')
+            roles={'query': ['Editor', 'ChiefEditor'], 'operator': 'or'})
+        self.assertTrue(
+            self.publication in results,
+            'publication should show up when querying for one matching role')
 
 
     def test_multiple_users_add_remove_role(self):
@@ -146,19 +135,19 @@ class TestIndexing(TestBase):
         self.assertTrue(self.publication not in results,
             'publication should not show up in the results anymore')
 
-    def test_object_removal(self):
+    def test_content_removal(self):
         self.add_roles(self.publication, 'editor', 'Editor')
-        intids = getUtility(IIntIds)
-        pubid = intids.getId(self.publication)
-        results = self.service.catalog.apply({"users":'editor'})
-        self.assertTrue(pubid in results,
-            'publication should be indexed')
+        pubid = getUtility(IIntIds).getId(self.publication)
 
-        del self.publication
-        del self.root['pub']
+        results = self.service.catalog.apply({"users":'editor'})
+        self.assertTrue(pubid in results, 'publication should be indexed')
+
+        self.root.manage_delObjects(['publication',])
+
         results = self.service.catalog.apply({'users': 'editor'})
-        self.assertTrue(pubid not in results, 'publication should'
-            ' not appear anymore in the results')
+        self.assertTrue(
+            pubid not in results,
+            'publication should not appear anymore in the results')
 
 
 class TestCSVExport(TestBase):

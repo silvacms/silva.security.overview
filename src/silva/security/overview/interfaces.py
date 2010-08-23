@@ -1,12 +1,13 @@
+# -*- coding: utf-8 -*-
+# Copyright (c) 2010 Infrae. All rights reserved.
+# See also LICENSE.txt
+
 from zope.interface import Interface, Attribute
-from zope.schema import Set, TextLine
 from silva.core.services.interfaces import ISilvaService
 
 
 class ISecurityOverviewConfiguration(Interface):
-    ignored_roles = Set(title=u'Ignored roles',
-        value_type=TextLine())
-
+    pass
 
 class ISecurityOverviewService(ISilvaService,
                                ISecurityOverviewConfiguration):
