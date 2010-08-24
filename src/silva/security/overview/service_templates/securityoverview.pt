@@ -11,8 +11,8 @@
       <form action="." tal:attributes="action view/form_path" method="get"
             enctype="multipart/form-data">
 
-        <h1 tal:condition="view/label"
-            tal:content="view/label">Label</h1>
+        <h2 tal:condition="view/label"
+            tal:content="view/label">Label</h2>
 
         <p tal:condition="view/description"
            tal:content="view/description">Description</p>
@@ -33,16 +33,16 @@
         <div class="fields"
              tal:condition="view/fieldWidgets">
           <div class="field" tal:repeat="widget view/fieldWidgets">
-            <label class="field-label" for="#"
+            <label class="field-label form-label" for="#"
                    tal:attributes="for widget/htmlId"
                    tal:content="widget/title">
               Label
             </label>
-            <span class="field-required"
+            <span class="field-required form-optional"
                   tal:condition="widget/required">(required)</span>
             <br />
             <tal:description tal:condition="widget/description">
-              <span class="field-description"
+              <span class="field-description form-help"
                     tal:content="widget/description">
               </span><br />
             </tal:description>
