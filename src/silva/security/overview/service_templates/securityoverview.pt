@@ -75,9 +75,9 @@
 
       </form>
 
-      <div class="message" tal:condition="python: not(view.entries)">
+      <p class="message" tal:condition="python: not(view.entries)">
         No information available.
-      </div>
+      </p>
 
       <tal:block tal:condition="view/entries">
 
