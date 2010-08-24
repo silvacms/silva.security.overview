@@ -9,6 +9,7 @@ from silva.core.services.interfaces import ISilvaService
 class ISecurityOverviewConfiguration(Interface):
     pass
 
+
 class ISecurityOverviewService(ISilvaService,
                                ISecurityOverviewConfiguration):
     """ Interface for security overview service
