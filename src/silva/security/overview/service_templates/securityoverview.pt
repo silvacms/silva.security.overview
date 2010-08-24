@@ -30,34 +30,41 @@
           </tal:error>
         </p>
 
-        <div class="fields"
-             tal:condition="view/fieldWidgets">
-          <div class="field" tal:repeat="widget view/fieldWidgets">
-            <label class="field-label form-label" for="#"
-                   tal:attributes="for widget/htmlId"
-                   tal:content="widget/title">
-              Label
-            </label>
-            <span class="field-required form-optional"
-                  tal:condition="widget/required">(required)</span>
-            <br />
-            <tal:description tal:condition="widget/description">
-              <span class="field-description form-help"
-                    tal:content="widget/description">
-              </span><br />
-            </tal:description>
-            <tal:error tal:define="error widget/error"
-                       tal:condition="error">
-              <span class="field-error"
-                    tal:content="error/title">
-                Error
-              </span>
-              <br />
-            </tal:error>
-            <tal:widget tal:content="structure widget/render" />
-          </div>
-        </div>
-
+        <table class="fields"
+               tal:condition="view/fieldWidgets">
+          <tr class="field" tal:repeat="widget view/fieldWidgets">
+            <td>
+              <label class="field-label form-label" for="#"
+                     tal:attributes="for widget/htmlId"
+                     tal:content="widget/title">
+                Label
+              </label>
+              <span class="field-required form-optional"
+                    tal:condition="widget/required">(required)</span>
+            </td>
+            <td>
+              <tal:error tal:define="error widget/error"
+                         tal:condition="error">
+                <span class="field-error"
+                      tal:content="error/title">
+                  Error
+                </span>
+                <br />
+              </tal:error>
+            </td>
+            <td>
+              <tal:widget tal:content="structure widget/render" />
+            </td>
+            <td>
+              <tal:description tal:condition="widget/description">
+                <span class="field-description form-help"
+                      tal:content="widget/description">
+                  </span><br />
+              </tal:description>
+            </td>
+          </tr>
+        </table>
+      
         <div class="actions"
              tal:condition="view/actionWidgets">
           <div class="action" tal:repeat="widget view/actionWidgets">
