@@ -167,7 +167,7 @@ def _validate_search(form):
 
 @apply
 def silva_role_source():
-    roles = [SimpleTerm(value='', token='none', title='All roles')]
+    roles = [SimpleTerm(value='', token='none', title='Select a role')]
     for role in roleinfo.ALL_ROLES:
         roles.append(SimpleTerm(value=role, token=role, title=role))
     return SimpleVocabulary(roles)
@@ -176,17 +176,17 @@ def silva_role_source():
 class ISearchSchema(interface.Interface):
     user = schema.TextLine(
         title=u"user",
-        description=u"username if you are looking for a specific a user",
+        description=u"username you are looking for (case sensitive)",
         required=False)
     role = schema.Choice(
         title=u"role",
-        description=u"role you want to lookup",
+        description=u"Silva role you want search for",
         source=silva_role_source,
         default='',
         required=False)
     path = schema.TextLine(
         title=u"path",
-        description=u"path under which the search will be done",
+        description=u"Container path from where the search will start",
         required=False)
 
 
@@ -196,8 +196,8 @@ class SecurityOverView(silvaforms.ZMIForm):
     grok.context(ISecurityOverviewService)
 
     label = u"Search for role assignement"
-    description = u"This search form let you search "\
-        u"for roles assignement inside Silva."
+    description = u"This service lets you search "\
+        u"for roles assigned inside Silva containers."
     fields = silvaforms.Fields(ISearchSchema)
 
     def update(self):
