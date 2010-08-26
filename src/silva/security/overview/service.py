@@ -195,6 +195,9 @@ class SecurityOverView(silvaforms.ZMIForm):
     grok.name(name)
     grok.context(ISecurityOverviewService)
 
+    label = u"Search for role assignement"
+    description = u"This search form let you search "\
+        u"for roles assignement inside Silva."
     fields = silvaforms.Fields(ISearchSchema)
 
     def update(self):
