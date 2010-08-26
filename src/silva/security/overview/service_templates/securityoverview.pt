@@ -9,6 +9,7 @@
         .hilite { background-color: Yellow;}
         .results tr:nth-child(even) td { background-color: #eee;}
         .results th { text-align: left;}
+        .nav { padding: 5px;}    
         .batchNav a { border: 1px solid; padding:1px 2px;}
         .batchNav a.current, .batchNav a.next, .batchNav a.previous { border: none;}
       </style>
