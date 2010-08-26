@@ -176,11 +176,11 @@ def silva_role_source():
 class ISearchSchema(interface.Interface):
     user = schema.TextLine(
         title=u"user",
-        description=u"username you are looking for (case sensitive)",
+        description=u"The username you are looking for (case sensitive)",
         required=False)
     role = schema.Choice(
         title=u"role",
-        description=u"Silva role you want search for",
+        description=u"Silva role you are looking for",
         source=silva_role_source,
         default='',
         required=False)
