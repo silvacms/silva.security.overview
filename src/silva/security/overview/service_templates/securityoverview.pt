@@ -10,29 +10,33 @@
         .results tr:nth-child(even) td { background-color: #eee;}
         .results th { text-align: left;}
         .nav { padding: 5px;}    
-        .batchNav a { border: 1px solid; padding:1px 2px;}
+        .batchNav a { border: 1px solid; padding: 1px 2px;}
+        .batchNav a:hover { text-decoration: underline;}
+        .batchNav a.current { font-weight: bold; color: #000;}
+        .batchNav a.current:hover { cursor: default; text-decoration: none;}
         .batchNav a.current, .batchNav a.next, .batchNav a.previous { border: none;}
+        .actions { padding-left: 40px;}
       </style>
       <form action="." tal:attributes="action view/form_path" method="get"
             enctype="multipart/form-data">
-
+        
         <h2 tal:condition="view/label"
             tal:content="view/label">Label</h2>
-
+        
         <p tal:condition="view/description"
            tal:content="view/description">Description</p>
-
+        
         <p class="system-msg"
            tal:condition="view/status"
            tal:content="view/status">Status</p>
-
+        
         <p class="system-msg"
            tal:condition="view/errors">
           <tal:error tal:repeat="error view/formErrors">
             <span tal:replace="error/title" />
           </tal:error>
         </p>
-
+        
         <table class="fields"
                tal:condition="view/fieldWidgets">
           <tr class="field" tal:repeat="widget view/fieldWidgets">
@@ -81,40 +85,39 @@
         No search results.
       </p>
 
-      <tal:block tal:condition="view/entries">
-
-        <div class="nav" tal:content="structure view/batch" />
-
-        <table style="width: 100%;" class="results">
-          <tr class="list-header">
-            <th><div class="list-item">User</div></th>
-            <th><div class="list-item">Role</div></th>
-            <th><div class="list-item">Container path</div></th>
+      <table style="width: 100%" class="results">
+          <tr>
+            <th colspan="2">
+              Search results
+            </th>
           </tr>
-          <tal:block tal:repeat="entry view/entries">
-             <tal:block tal:repeat="data python: view.unpack_entry(entry)">
-              <tr class="row-normal list-item">
-                <td style="width: 15%;">
-                  <span tal:content="python:data['user']"
-                        tal:attributes="class python:'user' in data['hilite'] and 'hilite' or ''" />
-                </td>
-                <td style="width: 15%;">
-                  <span tal:content="python:data['role']"
-                        tal:attributes="class python:'role' in data['hilite'] and 'hilite' or ''" />
-                </td>
-                <td style="width: 80%;">
-                  <a 
-                    tal:attributes="href python: view.smi_security_url(entry)"
-                    tal:content="python: '/'.join(entry.getPhysicalPath())" />
-                </td>
-              </tr>
-            </tal:block>
-           </tal:block>
-        </table>
-        
-        <div class="nav" tal:content="structure view/batch" />
+        <tal:block tal:repeat="entry view/entries">
+          <tr class="row-hilite">
+            <td colspan="2">
+              <a 
+                tal:attributes="href python: view.smi_security_url(entry)"
+                tal:content="python: '/'.join(entry.getPhysicalPath())" />
+            </td>
+          </tr>
+          <tal:block tal:repeat="data python: view.unpack_entry(entry)">
+            <tr class="row-normal">
+              <td>
+                <span
+                  tal:attributes="class python:'user' in data['hilite'] and 'hilite' or ''"
+                  tal:content="python:data['user']" />
+              </td>
+              <td>
+                <span
+                  tal:attributes="class python:'role' in data['hilite'] and 'hilite' or ''"
+                  tal:content="python:data['role']" />
+              </td>
+            </tr>
+          </tal:block>
+        </tal:block>
+      </table> 
+      
+      <div class="nav" tal:content="structure view/batch" />   
 
-      </tal:block>
-    </div>
-  </body>
+  </div>
+</body>
 </html>
