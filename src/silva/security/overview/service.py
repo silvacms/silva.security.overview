@@ -6,6 +6,8 @@ import csv
 from logging import getLogger
 
 from five import grok
+from zope import interface, schema
+from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 from zope.cachedescriptors.property import CachedProperty
 from zope.catalog.keyword import KeywordIndex
 from zope.component import getUtility, queryMultiAdapter
@@ -152,10 +154,9 @@ class Cycle(object):
 
 def _validate_search(form):
     data, errors = form.extractData()
-    if data['user'] is silvaforms.NO_VALUE \
-            and data['role'] is silvaforms.NO_VALUE:
+    if data['user'] is silvaforms.NO_VALUE and not data['role']:
         raise silvaforms.ActionError(
-            'please provide at least a user or a role')
+            'Please provide at least a user or a role')
     if data['path'] is not silvaforms.NO_VALUE:
         root_path = "/".join(form.context.get_root().getPhysicalPath())
         if not (data['path'].startswith(root_path)):
@@ -164,15 +165,37 @@ def _validate_search(form):
     return True
 
 
+@apply
+def silva_role_source():
+    roles = [SimpleTerm(value='', token='none', title='All roles')]
+    for role in roleinfo.ALL_ROLES:
+        roles.append(SimpleTerm(value=role, token=role, title=role))
+    return SimpleVocabulary(roles)
+
+
+class ISearchSchema(interface.Interface):
+    user = schema.TextLine(
+        title=u"user",
+        description=u"username if you are looking for a specific a user",
+        required=False)
+    role = schema.Choice(
+        title=u"role",
+        description=u"role you want to lookup",
+        source=silva_role_source,
+        default='',
+        required=False)
+    path = schema.TextLine(
+        title=u"path",
+        description=u"path under which the search will be done",
+        required=False)
+
+
 class SecurityOverView(silvaforms.ZMIForm):
     name = 'manage_main'
     grok.name(name)
     grok.context(ISecurityOverviewService)
 
-    fields = silvaforms.Fields(
-        silvaforms.Field('user'),
-        silvaforms.Field('role'),
-        silvaforms.Field('path'))
+    fields = silvaforms.Fields(ISearchSchema)
 
     def update(self):
         self.entries = None

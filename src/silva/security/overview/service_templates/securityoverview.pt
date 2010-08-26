@@ -21,15 +21,13 @@
         <p tal:condition="view/description"
            tal:content="view/description">Description</p>
 
-        <p class="form-status"
+        <p class="system-msg"
            tal:condition="view/status"
            tal:content="view/status">Status</p>
 
-        <p class="form-error"
+        <p class="system-msg"
            tal:condition="view/errors">
-          There were errors:
           <tal:error tal:repeat="error view/formErrors">
-            <br />
             <span tal:replace="error/title" />
           </tal:error>
         </p>
