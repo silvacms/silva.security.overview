@@ -87,7 +87,7 @@
 
       <table style="width: 100%" class="results">
           <tr>
-            <th colspan="2">
+            <th class="list-header" colspan="2">
               Search results
             </th>
           </tr>
