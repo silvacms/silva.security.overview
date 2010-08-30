@@ -13,7 +13,6 @@ from zope.catalog.keyword import KeywordIndex
 from zope.component import getUtility, queryMultiAdapter
 from zope.intid.interfaces import IIntIds
 
-
 from silva.core import conf as silvaconf
 from silva.core.interfaces import ISilvaObject
 from silva.core.interfaces import IUserAccessSecurity
@@ -168,7 +167,7 @@ def _validate_search(form):
 @apply
 def silva_role_source():
     roles = [SimpleTerm(value='', token='none', title='Select a role')]
-    for role in roleinfo.ALL_ROLES:
+    for role in roleinfo.ASSIGNABLE_ROLES:
         roles.append(SimpleTerm(value=role, token=role, title=role))
     return SimpleVocabulary(roles)
 
