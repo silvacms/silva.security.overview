@@ -85,39 +85,43 @@
         No search results.
       </p>
 
-      <table style="width: 100%" class="results">
+      <tal:block tal:condition="view/entries">
+        <div class="nav" tal:content="structure view/batch" />
+        
+        <table style="width: 100%" class="results">
           <tr>
             <th class="list-header" colspan="2">
               Search results
             </th>
           </tr>
-        <tal:block tal:repeat="entry view/entries">
-          <tr class="row-hilite">
-            <td colspan="2">
-              <a 
-                tal:attributes="href python: view.smi_security_url(entry)"
-                tal:content="python: '/'.join(entry.getPhysicalPath())" />
-            </td>
-          </tr>
-          <tal:block tal:repeat="data python: view.unpack_entry(entry)">
-            <tr class="row-normal">
-              <td>
-                <span
-                  tal:attributes="class python:'user' in data['hilite'] and 'hilite' or ''"
-                  tal:content="python:data['user']" />
+          <tal:block tal:repeat="entry view/entries">
+            <tr class="row-hilite">
+              <td colspan="2">
+                <a 
+                  tal:attributes="href python: view.smi_security_url(entry)"
+                  tal:content="python: '/'.join(entry.getPhysicalPath())" />
               </td>
-              <td>
-                <span
+            </tr>
+            <tal:block tal:repeat="data python: view.unpack_entry(entry)">
+              <tr class="row-normal">
+                <td>
+                  <span
+                    tal:attributes="class python:'user' in data['hilite'] and 'hilite' or ''"
+                    tal:content="python:data['user']" />
+                </td>
+                <td>
+                  <span
                   tal:attributes="class python:'role' in data['hilite'] and 'hilite' or ''"
                   tal:content="python:data['role']" />
               </td>
-            </tr>
+              </tr>
+            </tal:block>
           </tal:block>
-        </tal:block>
-      </table> 
+        </table> 
+        
+        <div class="nav" tal:content="structure view/batch" />   
+      </tal:block>
       
-      <div class="nav" tal:content="structure view/batch" />   
-
-  </div>
-</body>
+    </div>
+  </body>
 </html>
