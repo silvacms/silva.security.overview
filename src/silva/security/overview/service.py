@@ -116,7 +116,7 @@ class SecurityOverviewService(SilvaService):
         if role:
             query['roles'] = role
         if path:
-            query['path'] = {'query': path, 'include_path': True}
+            query['path'] = {'query': path, 'depth': 20, 'include_path': True}
         return query
 
     def _build_catalog(self):
@@ -153,14 +153,14 @@ class Cycle(object):
 
 def _validate_search(form):
     data, errors = form.extractData()
-    if data['user'] is silvaforms.NO_VALUE and not data['role']:
-        raise silvaforms.ActionError(
-            'Please provide at least a user or a role')
-    if data['path'] is not silvaforms.NO_VALUE:
-        root_path = "/".join(form.context.get_root().getPhysicalPath())
-        if not (data['path'].startswith(root_path)):
-            raise silvaforms.ActionError(
-                'Path is invalid. It should start with %s' % root_path)
+#     if data['user'] is silvaforms.NO_VALUE and not data['role']:
+#         raise silvaforms.ActionError(
+#             'Please provide at least a user or a role')
+#     if data['path'] is not silvaforms.NO_VALUE:
+#         root_path = "/".join(form.context.get_root().getPhysicalPath())
+#         if not (data['path'].startswith(root_path)):
+#             raise silvaforms.ActionError(
+#                 'Path is invalid. It should start with %s' % root_path)
     return True
 
 
