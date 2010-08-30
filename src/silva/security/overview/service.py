@@ -65,7 +65,7 @@ class SecurityOverviewService(SilvaService):
     """
     meta_type = 'Silva Security Overview Service'
     grok.implements(ISecurityOverviewService)
-    default_service_identifier = 'silva_securityoverview'
+    default_service_identifier = 'service_securityoverview'
     silvaconf.icon('service.png')
 
     manage_options = (
