@@ -26,6 +26,7 @@ from silva.security.overview.interfaces import ISecurityOverviewService
 from silva.security.overview.interfaces import IUserRoleList
 
 from zeam.form import silva as silvaforms
+from zeam.form.base.datamanager import DictDataManager
 from zeam.utils.batch.interfaces import IBatching
 
 
@@ -116,7 +117,7 @@ class SecurityOverviewService(SilvaService):
         if role:
             query['roles'] = role
         if path:
-            query['path'] = {'query': path, 'depth': 20, 'include_path': True}
+            query['path'] = path
         return query
 
     def _build_catalog(self):
@@ -153,14 +154,12 @@ class Cycle(object):
 
 def _validate_search(form):
     data, errors = form.extractData()
-#     if data['user'] is silvaforms.NO_VALUE and not data['role']:
-#         raise silvaforms.ActionError(
-#             'Please provide at least a user or a role')
-#     if data['path'] is not silvaforms.NO_VALUE:
-#         root_path = "/".join(form.context.get_root().getPhysicalPath())
-#         if not (data['path'].startswith(root_path)):
-#             raise silvaforms.ActionError(
-#                 'Path is invalid. It should start with %s' % root_path)
+    if data['path'] is not silvaforms.NO_VALUE:
+        root_path = "/".join(form.context.get_root().getPhysicalPath())
+        if data['path'].startswith('/') and \
+                not data['path'].startswith(root_path):
+            raise silvaforms.ActionError(
+                'Path is invalid. It should start with %s' % root_path)
     return True
 
 
@@ -198,25 +197,35 @@ class SecurityOverView(silvaforms.ZMIForm):
     description = u"This service lets you search "\
         u"for roles assigned inside Silva containers."
     fields = silvaforms.Fields(ISearchSchema)
+    ignoreContent = False
+    ignoreRequest = True
 
     def update(self):
         self.entries = None
+        self.data = {}
+
+    def getContentData(self):
+        return DictDataManager(self.data)
 
     @silvaforms.action('Search', validator=_validate_search)
     def search(self):
         catalog = self.context.catalog
         data, errors = self.extractData()
-        self.data = data
         if errors:
             return silvaforms.FAILURE
 
-        def extract(val):
-            return val is not silvaforms.NO_VALUE and val or ''
+        for p in ['user', 'role']:
+            self.data[p] = data.getDefault(p)
 
-        self.query = self.context.build_query(
-            extract(data['user']),
-            extract(data['role']),
-            extract(data['path']))
+        path = data.getDefault('path')
+        root_path = "/".join(self.context.get_root().getPhysicalPath())
+        if path and not path.startswith('/'):
+            path =  root_path + '/' + path
+        self.data['path'] = path
+
+        self.query = self.context.build_query(self.data['user'],
+                                              self.data['role'],
+                                              self.data['path'])
 
         self.query['_limit'] = int(self.request.get('pagelen') or 20)
         self.query['_sort_index'] = 'path'
@@ -310,7 +319,7 @@ class ExportView(ZMIView):
         response = self.request.response
         response.setHeader('Content-Type', 'text/csv')
         response.setHeader('Content-Disposition',
-                           'attachment; filename=silva_user_role.csv')
+                           'attachment; filename=silva_users_role.csv')
 
         data = self.context.catalog.searchResults(
             _sort_index='path',

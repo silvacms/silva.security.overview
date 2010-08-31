@@ -66,6 +66,9 @@ class TestIndexing(TestBase):
         factory = self.root.manage_addProduct['Silva']
         factory.manage_addPublication('publication', 'Publication')
         self.publication = self.root.publication
+        factory = self.publication.manage_addProduct['Silva']
+        factory.manage_addLink('test_link', 'Test')
+        self.link = self.publication.test_link
 
     def test_user_is_indexed(self):
         self.add_roles(self.publication, 'dummy', 'Reader')
@@ -148,6 +151,33 @@ class TestIndexing(TestBase):
         self.assertTrue(
             pubid not in results,
             'publication should not appear anymore in the results')
+
+    def test_object_renamed(self):
+        self.add_roles(self.link, 'editor', 'Editor')
+        lid = getUtility(IIntIds).getId(self.link)
+        results = self.service.catalog.apply({"users":'editor'})
+        self.assertTrue(lid in results, 'link should be indexed')
+        self.publication.manage_renameObject('test_link', 'test_renamed')
+        results = self.service.catalog.apply({"users":'editor',
+            "path": "/root/publication/test_renamed"})
+        self.assertEquals([lid], list(results))
+        results = self.service.catalog.apply({"users":'editor',
+            "path": "/root/publication/test_link"})
+        self.assertEquals([], list(results))
+
+    def test_cut_paste_object(self):
+        ii = getUtility(IIntIds)
+        lid = ii.getId(self.link)
+        pid = ii.getId(self.publication)
+        factory = self.root.manage_addProduct['Silva']
+        factory.manage_addFolder('dest', 'Destination')
+        dest = self.root.dest
+        token = self.root.manage_cutObjects(['publication'])
+        dest.manage_pasteObjects(token)
+
+        results = self.service.catalog.apply({"users":'editor',
+            "path": "/root/dest"})
+        self.assertEquals(set([lid, pid]), set(results))
 
 
 class TestCSVExport(TestBase):

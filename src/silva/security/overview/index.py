@@ -65,6 +65,9 @@ class PathIndexStore(Persistent):
             return None
 
         path = self._getPathTuple(value)
+        oldpath = self.docid_to_path.get(docid, path)
+        if path != oldpath:
+            self.unindex_doc(docid)
 
         self.docid_to_path[docid] = path
         self.path_to_docid[path] = docid
@@ -80,38 +83,23 @@ class PathIndexStore(Persistent):
         path = self.docid_to_path.get(docid)
         if path is None:
             return
+
+        del self.docid_to_path[docid]
+        del self.path_to_docid[path]
+
         for current_path in iterpath(path):
             self.disjoint[current_path].remove(docid)
             if not self.disjoint[current_path]:
                 del self.disjoint[current_path]
 
-    def reindex_doc(self, docid, value):
-        path = self._getPathTuple(value)
-
-        if self.docid_to_path.get(docid) != path:
-            self.unindex_doc(docid)
-            self.index_doc(docid, object)
-            return True
-        return False
-
     def search(self, path):
         path = self._getPathTuple(path)
-        return self.disjoint.get(path)
-
-    def apply_intersect(self, query, docids):
-        """ Default apply_intersect implementation """
-        result = self.apply(query)
-        if docids is None:
-            return result
-        return self.family.IF.weightedIntersection(result, docids)[1]
+        return self.disjoint.get(path, self.family.IF.Set())
 
     def apply(self, query):
-        if isinstance(query, (basestring, tuple, list)):
-            path = query
-        else:
-            path = query['query']
-
-        return self.search(path)
+        if isinstance(query, dict):
+            query = query['query']
+        return self.search(query)
 
     def sort(self, docids, reverse=False, limit=None):
         def get_path(docid):
