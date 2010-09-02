@@ -6,8 +6,8 @@
   <body>
     <div metal:fill-slot="body">
       <style>
-        .hilite-row { background-color: Bisque;}
-        .hilite { background-color: lightBlue;}
+        .hilite-row { background-color: lightBlue;}
+        .hilite { background-color: Gold;}
         .user .hilite { background-color: lightGreen;}
         .results tr:nth-child(even) td { background-color: #eee;}
         .results th { text-align: left;}
