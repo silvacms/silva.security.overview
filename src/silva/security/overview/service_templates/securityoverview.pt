@@ -96,7 +96,7 @@
           </tr>
           <tal:block tal:repeat="entry view/entries">
             <tr class="row-hilite">
-              <td colspan="2">
+              <td colspan="2" class="path">
                 <a 
                   tal:attributes="href python: view.smi_security_url(entry)"
                   tal:content="python: '/'.join(entry.getPhysicalPath())" />
@@ -104,12 +104,12 @@
             </tr>
             <tal:block tal:repeat="data python: view.unpack_entry(entry)">
               <tr class="row-normal">
-                <td>
+                <td class="user">
                   <span
                     tal:attributes="class python:'user' in data['hilite'] and 'hilite' or ''"
                     tal:content="python:data['user']" />
                 </td>
-                <td>
+                <td class="role">
                   <span
                   tal:attributes="class python:'role' in data['hilite'] and 'hilite' or ''"
                   tal:content="python:data['role']" />

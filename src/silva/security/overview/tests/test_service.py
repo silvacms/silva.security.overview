@@ -24,6 +24,22 @@ class SilvaSecurityOverviewLayer(SilvaLayer):
         transaction.commit()
 
 
+
+def add_roles(content, user, *roles):
+    access =  IUserAccessSecurity(content)
+    authorization = access.get_user_authorization(
+        user, dont_acquire=True)
+    for role in roles:
+        authorization.grant(role)
+
+
+def remove_roles(content, user):
+    access =  IUserAccessSecurity(content)
+    authorization = access.get_user_authorization(
+        user, dont_acquire=True)
+    authorization.revoke()
+
+
 class TestBase(unittest.TestCase):
 
     layer = SilvaSecurityOverviewLayer(
@@ -34,19 +50,6 @@ class TestBase(unittest.TestCase):
         self.root = self.layer.get_application()
         self.layer.login('manager')
         self.service = self.root.service_securityoverview
-
-    def add_roles(self, content, user, *roles):
-        access =  IUserAccessSecurity(content)
-        authorization = access.get_user_authorization(
-            user, dont_acquire=True)
-        for role in roles:
-            authorization.grant(role)
-
-    def remove_roles(self, content, user):
-        access =  IUserAccessSecurity(content)
-        authorization = access.get_user_authorization(
-            user, dont_acquire=True)
-        authorization.revoke()
 
 
 class TestSecurityOverviewService(TestBase):
@@ -71,14 +74,14 @@ class TestIndexing(TestBase):
         self.link = self.publication.test_link
 
     def test_user_is_indexed(self):
-        self.add_roles(self.publication, 'dummy', 'Reader')
+        add_roles(self.publication, 'dummy', 'Reader')
         results = self.service.catalog.searchResults(users='dummy')
         self.assertTrue(self.publication in results, 'publication should'
             ' show up in the results when querying for user')
 
     def test_roles_are_indexed(self):
-        self.add_roles(self.publication, 'dummy', 'Editor')
-        self.add_roles(self.publication, 'viewer', 'Reader')
+        add_roles(self.publication, 'dummy', 'Editor')
+        add_roles(self.publication, 'viewer', 'Reader')
 
         results = self.service.catalog.searchResults(roles=['Editor'])
         self.assertTrue(
@@ -104,8 +107,8 @@ class TestIndexing(TestBase):
 
 
     def test_multiple_users_add_remove_role(self):
-        self.add_roles(self.publication, 'dummy', 'Reader')
-        self.add_roles(self.publication, 'editor', 'Editor')
+        add_roles(self.publication, 'dummy', 'Reader')
+        add_roles(self.publication, 'editor', 'Editor')
 
         results = self.service.catalog.searchResults(users='dummy')
         self.assertTrue(self.publication in results, 'publication should'
@@ -115,31 +118,31 @@ class TestIndexing(TestBase):
         self.assertTrue(self.publication in results, 'publication should'
             ' show up in the results when querying for user editor')
 
-        self.add_roles(self.publication, 'editor', 'ChiefEditor')
+        add_roles(self.publication, 'editor', 'ChiefEditor')
         results = self.service.catalog.searchResults(users='editor')
         self.assertTrue(self.publication in results, 'publication should'
             ' show up in the results when querying for user editor')
 
-        self.remove_roles(self.publication, 'editor')
+        remove_roles(self.publication, 'editor')
         results = self.service.catalog.searchResults(users='editor')
         self.assertTrue(self.publication not in results, 'publication should'
             ' not be in the results anymore because all roles where removed'
             ' for user editor')
 
     def test_remove_user(self):
-        self.add_roles(self.publication, 'editor', 'Editor', 'ChiefEditor')
+        add_roles(self.publication, 'editor', 'Editor', 'ChiefEditor')
 
         results = self.service.catalog.searchResults(users='editor')
         self.assertTrue(self.publication in results, 'publication should'
             ' show up in the results when querying for user editor')
 
-        self.remove_roles(self.publication, 'editor')
+        remove_roles(self.publication, 'editor')
         results = self.service.catalog.searchResults(users='editor')
         self.assertTrue(self.publication not in results,
             'publication should not show up in the results anymore')
 
     def test_content_removal(self):
-        self.add_roles(self.publication, 'editor', 'Editor')
+        add_roles(self.publication, 'editor', 'Editor')
         pubid = getUtility(IIntIds).getId(self.publication)
 
         results = self.service.catalog.apply({"users":'editor'})
@@ -153,7 +156,7 @@ class TestIndexing(TestBase):
             'publication should not appear anymore in the results')
 
     def test_object_renamed(self):
-        self.add_roles(self.link, 'editor', 'Editor')
+        add_roles(self.link, 'editor', 'Editor')
         lid = getUtility(IIntIds).getId(self.link)
         results = self.service.catalog.apply({"users":'editor'})
         self.assertTrue(lid in results, 'link should be indexed')
@@ -191,10 +194,10 @@ class TestCSVExport(TestBase):
         factory = self.root.publication.manage_addProduct["Silva"]
         factory.manage_addFile('file', 'File', StringIO())
 
-        self.add_roles(self.root.file, 'editor', 'Viewer ++')
-        self.add_roles(self.root.publication, 'dummy', 'Reader', 'Editor')
-        self.add_roles(self.root.publication.file, 'dummy', 'Reader')
-        self.add_roles(self.root.publication.file, 'editor', 'Viewer')
+        add_roles(self.root.file, 'editor', 'Viewer ++')
+        add_roles(self.root.publication, 'dummy', 'Reader', 'Editor')
+        add_roles(self.root.publication.file, 'dummy', 'Reader')
+        add_roles(self.root.publication.file, 'editor', 'Viewer')
 
     def test_csv_unauthorized_export(self):
         response = http(
