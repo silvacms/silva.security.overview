@@ -199,6 +199,7 @@ class SecurityOverView(silvaforms.ZMIForm):
     fields = silvaforms.Fields(ISearchSchema)
     ignoreContent = False
     ignoreRequest = True
+    postOnly = False
 
     def update(self):
         self.entries = None
@@ -216,7 +217,6 @@ class SecurityOverView(silvaforms.ZMIForm):
 
         for p in ['user', 'role']:
             self.data[p] = data.getDefault(p)
-
         path = data.getDefault('path')
         root_path = "/".join(self.context.get_root().getPhysicalPath())
         if path and not path.startswith('/'):
