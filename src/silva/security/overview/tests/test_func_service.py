@@ -1,8 +1,8 @@
 from infrae.testbrowser.browser import Browser
 from silva.security.overview.tests.test_service import (add_roles,
     TestBase)
-
 import transaction
+
 
 class TestFuncService(TestBase):
 
