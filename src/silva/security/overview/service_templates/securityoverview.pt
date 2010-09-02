@@ -37,7 +37,7 @@
           </tal:error>
         </p>
         
-        <table class="fields"
+        <table class="fields" class="std-text"
                tal:condition="view/fieldWidgets">
           <tr class="field" tal:repeat="widget view/fieldWidgets">
             <td>
@@ -88,7 +88,7 @@
       <tal:block tal:condition="view/entries">
         <div class="nav" tal:content="structure view/batch" />
         
-        <table style="width: 100%" class="results">
+        <table style="width: 100%" class="results std-text">
           <tr>
             <th class="list-header" colspan="2">
               Search results
@@ -104,21 +104,21 @@
             </tr>
             <tal:block tal:repeat="data python: view.unpack_entry(entry)">
               <tr class="row-normal">
-                <td class="user">
+                <td class="role" width="15%">
+                  <span
+                    tal:attributes="class python:'role' in data['hilite'] and 'hilite' or ''"
+                    tal:content="python:data['role']" />
+                </td>              
+                <td class="user" width="85%">
                   <span
                     tal:attributes="class python:'user' in data['hilite'] and 'hilite' or ''"
                     tal:content="python:data['user']" />
                 </td>
-                <td class="role">
-                  <span
-                  tal:attributes="class python:'role' in data['hilite'] and 'hilite' or ''"
-                  tal:content="python:data['role']" />
-              </td>
               </tr>
             </tal:block>
           </tal:block>
         </table> 
-        
+          
         <div class="nav" tal:content="structure view/batch" />   
       </tal:block>
       
