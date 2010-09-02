@@ -6,7 +6,8 @@
   <body>
     <div metal:fill-slot="body">
       <style>
-        .hilite { background-color: Yellow;}
+        .hilite-row { background-color: Bisque;}
+        .hilite { background-color: lightBlue;}
         .user .hilite { background-color: lightGreen;}
         .results tr:nth-child(even) td { background-color: #eee;}
         .results th { text-align: left;}
@@ -104,7 +105,8 @@
               </td>
             </tr>
             <tal:block tal:repeat="data python: view.unpack_entry(entry)">
-              <tr class="row-normal">
+              <tr class="row-normal"
+                  tal:attributes="class python:('role' in data['hilite'] and 'user' in data['hilite']) and 'hilite-row' or ''">
                 <td class="role" width="15%">
                   <span
                     tal:attributes="class python:'role' in data['hilite'] and 'hilite' or ''"
