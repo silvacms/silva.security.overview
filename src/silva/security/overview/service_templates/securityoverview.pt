@@ -6,11 +6,9 @@
   <body>
     <div metal:fill-slot="body">
       <style>
-        .hilite-row { background-color: lightBlue;}
-        .hilite { background-color: Gold;}
-        .user .hilite { background-color: lightGreen;}
-        .results tr:nth-child(even) td { background-color: #eee;}
+        table.results { border-collapse:collapse;}
         .results th { text-align: left;}
+        .results tr td { border-bottom:1px solid #ebece1;}
         .nav { padding: 5px;}    
         .batchNav a { border: 1px solid; padding: 1px 2px;}
         .batchNav a:hover { text-decoration: underline;}
@@ -18,6 +16,9 @@
         .batchNav a.current:hover { cursor: default; text-decoration: none;}
         .batchNav a.current, .batchNav a.next, .batchNav a.previous { border: none;}
         .actions { padding-left: 40px;}
+        .hilite-row { background-color: #d7e5f4;}
+        .hilite { background-color: Gold;}
+        .user .hilite { background-color: lightGreen;}
       </style>
       <form action="." tal:attributes="action view/form_path" method="get"
             enctype="multipart/form-data">
@@ -97,16 +98,16 @@
             </th>
           </tr>
           <tal:block tal:repeat="entry view/entries">
-            <tr class="row-hilite">
-              <td colspan="2" class="path">
+            <th class="row-hilite" colspan="2">
+              <span class="path">
                 <a 
                   tal:attributes="href python: view.smi_security_url(entry)"
                   tal:content="python: '/'.join(entry.getPhysicalPath())" />
-              </td>
-            </tr>
+              </span>
+             </th>
             <tal:block tal:repeat="data python: view.unpack_entry(entry)">
-              <tr class="row-normal"
-                  tal:attributes="class python:('role' in data['hilite'] and 'user' in data['hilite']) and 'hilite-row' or ''">
+              <tr class=""
+                  tal:attributes="class python:('role' in data['hilite'] and 'user' in data['hilite']) and 'hilite-row' or 'row-normal'">
                 <td class="role" width="15%">
                   <span
                     tal:attributes="class python:'role' in data['hilite'] and 'hilite' or ''"
