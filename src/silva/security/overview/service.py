@@ -174,17 +174,17 @@ def silva_role_source():
 class ISearchSchema(interface.Interface):
     path = schema.TextLine(
         title=u"path",
-        description=u"Container path from where the search will start.",
+        description=u"Path to container from where the search will start.",
         required=False)
     role = schema.Choice(
         title=u"role",
-        description=u"Silva role you are looking for.",
+        description=u"Silva role you are looking for. Leave unselected for all.",
         source=silva_role_source,
         default='',
         required=False)
     user = schema.TextLine(
         title=u"user",
-        description=u"The username you are looking for (case sensitive).",
+        description=u"The complete username you are looking for (case sensitive).",
         required=False)
 
 
@@ -194,8 +194,9 @@ class SecurityOverView(silvaforms.ZMIForm):
     grok.context(ISecurityOverviewService)
 
     label = u"Search for role assignement"
-    description = u"This service lets you search "\
-        u"for roles assigned inside Silva containers."
+    description = u"This service lets you search for roles assigned in "\
+                  u"Silva containers. You can combine fields to narrow your "\
+                  u"search."
     fields = silvaforms.Fields(ISearchSchema)
     ignoreContent = False
     ignoreRequest = True
