@@ -16,9 +16,8 @@
         .batchNav a.current:hover { cursor: default; text-decoration: none;}
         .batchNav a.current, .batchNav a.next, .batchNav a.previous { border: none;}
         .actions { padding-left: 40px;}
-        .hilite-row { background-color: #d7e5f4;}
-        .hilite { background-color: Gold;}
-        .user .hilite { background-color: lightGreen;}
+        .hilite-row { background-color: Yellow;}
+        .hilite { background-color: Yellow;}
       </style>
       <form action="." tal:attributes="action view/form_path" method="get"
             enctype="multipart/form-data">
