@@ -15,7 +15,7 @@ from zope.intid.interfaces import IIntIds
 
 from silva.core import conf as silvaconf
 from silva.core.interfaces import ISilvaObject
-from silva.core.interfaces import IUserAccessSecurity
+from silva.core.interfaces import IAuthorizationManager
 from silva.core.services.base import SilvaService
 from silva.core.services.utils import walk_silva_tree
 from silva.core.views.views import ZMIView
@@ -42,7 +42,7 @@ class UserList(grok.Adapter):
 
     def __init__(self, context):
         super(UserList, self).__init__(context)
-        access = IUserAccessSecurity(context)
+        access = IAuthorizationManager(context)
 
         self.roles = set()
         self.users = []
