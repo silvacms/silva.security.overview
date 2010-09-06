@@ -8,7 +8,8 @@ class TestFuncService(TestBase):
 
     def setUp(self):
         super(TestFuncService, self).setUp()
-        self.browser = Browser(self.layer._create_wsgi_application())
+        self.browser = Browser(self.layer._test_wsgi_application)
+        self.browser.inspect.add('results', '//span[@class="path"]/a')
 
         factory = self.root.manage_addProduct['Silva']
         factory.manage_addPublication('publication', 'Publication')
@@ -28,7 +29,7 @@ class TestFuncService(TestBase):
             query={'form.action.search': 'Search',
                    'form.field.path': '/root'})
         self.assertEquals(200, status)
-        paths = self.browser.html.xpath('//td[@class="path"]/a/text()')
+        paths = self.browser.inspect.results
         self.assertEquals(['/root/publication', '/root/publication/test_link'],
                           paths)
 
@@ -39,7 +40,7 @@ class TestFuncService(TestBase):
                    'form.field.path': '/root/publication',
                    'form.field.role': 'Viewer +'})
         self.assertEquals(200, status)
-        paths = self.browser.html.xpath('//td[@class="path"]/a/text()')
+        paths = self.browser.inspect.results
         self.assertEquals(['/root/publication/test_link'],
                           paths)
 
@@ -50,7 +51,7 @@ class TestFuncService(TestBase):
                    'form.field.path': '/root/publication',
                    'form.field.user': 'viewer'})
         self.assertEquals(200, status)
-        paths = self.browser.html.xpath('//td[@class="path"]/a/text()')
+        paths = self.browser.inspect.results
         self.assertEquals(['/root/publication/test_link'],
                           paths)
 
