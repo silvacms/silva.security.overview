@@ -12,7 +12,7 @@ import transaction
 
 from Products.Silva.testing import SilvaLayer, http
 from silva.security.overview import interfaces
-from silva.core.interfaces import IUserAccessSecurity
+from silva.core.interfaces import IAuthorizationManager
 import silva.security.overview
 
 
@@ -26,17 +26,15 @@ class SilvaSecurityOverviewLayer(SilvaLayer):
 
 
 def add_roles(content, user, *roles):
-    access =  IUserAccessSecurity(content)
-    authorization = access.get_user_authorization(
-        user, dont_acquire=True)
+    access =  IAuthorizationManager(content)
+    authorization = access.get_authorization(user, dont_acquire=True)
     for role in roles:
         authorization.grant(role)
 
 
 def remove_roles(content, user):
-    access =  IUserAccessSecurity(content)
-    authorization = access.get_user_authorization(
-        user, dont_acquire=True)
+    access =  IAuthorizationManager(content)
+    authorization = access.get_authorization(user, dont_acquire=True)
     authorization.revoke()
 
 
