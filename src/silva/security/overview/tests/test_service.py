@@ -167,18 +167,22 @@ class TestIndexing(TestBase):
         self.assertEquals([], list(results))
 
     def test_cut_paste_object(self):
-        ii = getUtility(IIntIds)
-        lid = ii.getId(self.link)
-        pid = ii.getId(self.publication)
-        factory = self.root.manage_addProduct['Silva']
-        factory.manage_addFolder('dest', 'Destination')
-        dest = self.root.dest
-        token = self.root.manage_cutObjects(['publication'])
-        dest.manage_pasteObjects(token)
+        add_roles(self.root.publication, 'editor', 'Editor')
+        add_roles(self.root.publication.test_link, 'editor', 'Editor')
 
-        results = self.service.catalog.apply({"users":'editor',
-            "path": "/root/dest"})
-        self.assertEquals(set([lid, pid]), set(results))
+        factory = self.root.manage_addProduct['Silva']
+        factory.manage_addFolder('destination', 'Destination')
+        token = self.root.manage_cutObjects(['publication'])
+        self.root.destination.manage_pasteObjects(token)
+
+        service = getUtility(IIntIds)
+        publication_id = service.getId(self.root.destination.publication)
+        link_id = service.getId(self.root.destination.publication.test_link)
+
+        results = self.service.catalog.apply(
+            {"users":'editor',
+             "path": "/root/destination"})
+        self.assertEquals(set([link_id, publication_id]), set(results))
 
 
 class TestCSVExport(TestBase):

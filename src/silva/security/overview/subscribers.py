@@ -6,8 +6,8 @@ from five import grok
 from zope.catalog.interfaces import INoAutoIndex, INoAutoReindex
 from zope.component import queryUtility
 from zope.intid.interfaces import IIntIdAddedEvent, IIntIdRemovedEvent
-from zope.lifecycleevent.interfaces import (IObjectMovedEvent,
-    IObjectRemovedEvent, IObjectAddedEvent)
+from zope.lifecycleevent.interfaces import (
+    IObjectMovedEvent, IObjectRemovedEvent)
 from zope.intid.interfaces import IIntIds
 
 from silva.core.interfaces import ISecurityRoleAddedEvent
