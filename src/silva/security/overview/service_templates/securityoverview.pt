@@ -7,7 +7,8 @@
     <div metal:fill-slot="body">
       <style>
         table.results { border-collapse:collapse;}
-        .results th { text-align: left;}
+        .align-right { text-align: right;}
+        .align-left, th { text-align: left;}
         .results tr td { border-bottom:1px solid #ebece1;}
         .nav { padding: 5px;}    
         .batchNav a { border: 1px solid; padding: 1px 2px;}
@@ -15,7 +16,7 @@
         .batchNav a.current { font-weight: bold; color: #000;}
         .batchNav a.current:hover { cursor: default; text-decoration: none;}
         .batchNav a.current, .batchNav a.next, .batchNav a.previous { border: none;}
-        .actions { padding-left: 40px;}
+        .actions { padding-left: 158px;}
         .hilite-row { background-color: Yellow;}
         .hilite { background-color: Yellow;}
       </style>
@@ -42,7 +43,7 @@
         <table class="fields" class="std-text"
                tal:condition="view/fieldWidgets">
           <tr class="field" tal:repeat="widget view/fieldWidgets">
-            <td>
+            <td class="align-right">
               <label class="field-label form-label" for="#"
                      tal:attributes="for widget/htmlId"
                      tal:content="widget/title">

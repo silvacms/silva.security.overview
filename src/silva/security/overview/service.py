@@ -183,8 +183,8 @@ class ISearchSchema(interface.Interface):
         default='',
         required=False)
     user = schema.TextLine(
-        title=u"user",
-        description=u"The complete username you are looking for (case sensitive).",
+        title=u"user or group name",
+        description=u"The complete user or group name you are looking for (case sensitive).",
         required=False)
 
 
@@ -292,7 +292,7 @@ class RebuildCatalog(silvaforms.ZMISubForm):
     description = u"Go through the whole Silva site to "\
         u"reindex currently set permissions."
 
-    @silvaforms.action('Rebuild')
+    @silvaforms.action('Reindex')
     def rebuild_index(self):
         count = self.context.build()
         self.status = '%d objects indexed.' % count
