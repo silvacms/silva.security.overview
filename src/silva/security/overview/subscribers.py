@@ -38,7 +38,7 @@ def content_removed(content, event):
     service = queryUtility(ISecurityOverviewService)
     intids = queryUtility(IIntIds)
     if intids and service:
-        service.catalog.unindex_doc(intids.getId(content))
+        service.catalog.unindex_doc(intids.register(content))
 
 def index_object(content):
     service = queryUtility(ISecurityOverviewService)

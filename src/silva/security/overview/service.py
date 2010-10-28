@@ -96,7 +96,7 @@ class SecurityOverviewService(SilvaService):
     def index_object(self, ob, intutil=None):
         intids = intutil or getUtility(IIntIds)
         try:
-            intid = intids.getId(ob)
+            intid = intids.register(ob)
             role_list = IUserRoleList(ob)
             if role_list.roles:
                 self.catalog.index_doc(intid, ob)
