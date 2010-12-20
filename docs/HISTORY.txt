@@ -1,12 +1,12 @@
 Changes
 =======
 
-1.1 (unreleased)
-----------------
+1.0.1 (2010/12/20)
+------------------
 
-- ...
+* Fix a bug when used with existing pre 2.3 content.
 
 1.0 (2010/10/18)
 ----------------
 
-- First official release.
+* First official release.
