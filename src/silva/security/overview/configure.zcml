@@ -5,6 +5,7 @@
 
   <include package="five.grok" />
   <include package="five.intid" />
+  <include package="silva.fanstatic" />
   <include package="zeam.form.silva" />
   <include package="silva.batch" />
   <include package="silva.core.services" />

@@ -1,5 +1,5 @@
 
-from silva.security.overview.tests.test_service import (
+from silva.security.overview.testing import (
     add_roles, TestBase)
 import transaction
 
@@ -33,6 +33,7 @@ class ServiceFunctionalTestCase(TestBase):
 
     def test_simple_path_query_results(self):
         browser = self.layer.get_browser(overview_settings)
+        browser.options.handle_errors = False
         browser.login('manager', 'manager')
 
         status = browser.open(

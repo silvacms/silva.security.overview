@@ -8,46 +8,9 @@ import unittest
 from zope.component import getUtility
 from zope.interface.verify import verifyObject
 from zope.intid.interfaces import IIntIds
-import transaction
 
-from Products.Silva.testing import SilvaLayer, http
 from silva.security.overview import interfaces
-from silva.core.interfaces import IAuthorizationManager
-import silva.security.overview
-
-
-class SilvaSecurityOverviewLayer(SilvaLayer):
-
-    def _install_application(self, app):
-        super(SilvaSecurityOverviewLayer, self)._install_application(app)
-        app.root.service_extensions.install('SilvaSecurityOverview')
-        transaction.commit()
-
-
-
-def add_roles(content, user, *roles):
-    access =  IAuthorizationManager(content)
-    authorization = access.get_authorization(user, dont_acquire=True)
-    for role in roles:
-        authorization.grant(role)
-
-
-def remove_roles(content, user):
-    access =  IAuthorizationManager(content)
-    authorization = access.get_authorization(user, dont_acquire=True)
-    authorization.revoke()
-
-
-class TestBase(unittest.TestCase):
-
-    layer = SilvaSecurityOverviewLayer(
-                silva.security.overview,
-                zcml_file='configure.zcml')
-
-    def setUp(self):
-        self.root = self.layer.get_application()
-        self.layer.login('manager')
-        self.service = self.root.service_securityoverview
+from silva.security.overview.testing import add_roles, remove_roles, TestBase
 
 
 class TestSecurityOverviewService(TestBase):
@@ -202,24 +165,22 @@ class TestCSVExport(TestBase):
         add_roles(self.root.publication.file, 'editor', 'Viewer')
 
     def test_csv_unauthorized_export(self):
-        response = http(
-            'GET /root/service_securityoverview/manage_export HTTP/1.1',
-            parsed=True)
-        self.assertEquals(401, response.getStatus())
+        browser = self.layer.get_browser()
+        self.assertEquals(401,
+            browser.open('/root/service_securityoverview/manage_export'))
 
     def test_csv_export(self):
-        response = http(
-            "GET /root/service_securityoverview/manage_export HTTP/1.1\n" \
-            "Authorization: Basic manager:manager",
-            parsed=True)
-        self.assertEquals(200, response.getStatus())
+        browser = self.layer.get_browser()
+        browser.login('manager')
+        self.assertEquals(200,
+            browser.open('/root/service_securityoverview/manage_export'))
         self.assertEquals(
 """path,user,role
 /root/file,editor,Viewer ++
 /root/publication,dummy,Editor
 /root/publication/file,dummy,Reader
 /root/publication/file,editor,Viewer
-""".replace("\n", "\r\n"), response.getBody())
+""".replace("\n", "\r\n"), browser.contents)
 
 
 def test_suite():
