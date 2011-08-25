@@ -3,6 +3,10 @@ import os
 
 version = '1.1dev'
 
+tests_require = [
+    'Products.Silva [test]',
+    ]
+
 setup(name='silva.security.overview',
       version=version,
       description="Security overview",
@@ -38,4 +42,6 @@ setup(name='silva.security.overview',
         'silva.core.views',
         'zeam.form.silva',
         ],
+      tests_require = tests_require,
+      extras_require = {'test': tests_require},
       )

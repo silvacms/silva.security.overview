@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+# Copyright (c) 2010 Infrae. All rights reserved.
+# See also LICENSE.txt
+
 import unittest
 import transaction
 import silva.security.overview
@@ -13,8 +17,7 @@ class SilvaSecurityOverviewLayer(SilvaLayer):
         transaction.commit()
 
 
-FunctionalLayer = SilvaSecurityOverviewLayer(silva.security.overview,
-    zcml_file='ftesting.zcml')
+FunctionalLayer = SilvaSecurityOverviewLayer(silva.security.overview)
 
 
 class TestBase(unittest.TestCase):
