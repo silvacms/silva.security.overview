@@ -1,8 +1,9 @@
-import zope.component
+
+from zeam.utils.batch import Batch
 from zope.catalog.catalog import Catalog as Zope3Catalog
 from zope.intid.interfaces import IIntIds
+from zope.component import getUtility
 import zope.index
-from zeam.utils.batch import batch
 
 
 class Catalog(Zope3Catalog):
@@ -23,10 +24,8 @@ class Catalog(Zope3Catalog):
                 if reverse:
                     results = list(results)
                     results.reverse()
-            uidutil = zope.component.getUtility(IIntIds)
-            def factory(item):
-                return uidutil.getObject(item)
-            results = batch(results, factory=factory, count=limit,
+            resolve = getUtility(IIntIds).getObject
+            results = Batch(results, factory=resolve, count=limit,
                 request=request)
         return results
 

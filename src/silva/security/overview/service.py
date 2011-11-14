@@ -5,6 +5,8 @@
 import csv
 from logging import getLogger
 
+from Acquisition import aq_parent
+
 from five import grok
 from zope import interface, schema
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
@@ -198,6 +200,8 @@ class SecurityOverView(silvaforms.ZMIForm):
                   u"Silva containers. You can combine fields to narrow your "\
                   u"search."
     fields = silvaforms.Fields(ISearchSchema)
+    fields['path'].defaultValue = lambda f: '/'.join(
+        aq_parent(f.context).getPhysicalPath())
     ignoreContent = False
     ignoreRequest = True
     postOnly = False

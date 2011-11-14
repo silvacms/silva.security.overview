@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '1.1dev'
+version = '1.1'
 
 tests_require = [
     'Products.Silva [test]',
@@ -29,18 +29,26 @@ setup(name='silva.security.overview',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
+        'five.grok',
+        'five.intid',
         'setuptools',
-        'zope.intid',
-        'zope.index',
-        'zope.cachedescriptors',
-        'zope.catalog',
-        'zeam.utils.batch',
         'silva.batch',
-        'silva.core.services',
         'silva.core.conf',
         'silva.core.interfaces',
+        'silva.core.services',
         'silva.core.views',
+        'silva.fanstatic',
         'zeam.form.silva',
+        'zeam.utils.batch >= 1.0',
+        'zope.cachedescriptors',
+        'zope.catalog',
+        'zope.component',
+        'zope.container',
+        'zope.index',
+        'zope.interface',
+        'zope.intid',
+        'zope.lifecycleevent',
+        'zope.schema',
         ],
       tests_require = tests_require,
       extras_require = {'test': tests_require},
