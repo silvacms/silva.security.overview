@@ -5,8 +5,8 @@ from silva.core.conf.installer import DefaultInstaller
 from zope.interface import Interface
 
 
-silvaconf.extensionName("SilvaSecurityOverview")
-silvaconf.extensionTitle("Silva Security Overview")
+silvaconf.extension_name("SilvaSecurityOverview")
+silvaconf.extension_title("Silva Security Overview")
 
 
 class Installer(DefaultInstaller):
@@ -16,17 +16,15 @@ class Installer(DefaultInstaller):
 
     service_id = 'service_securityoverview'
 
-    def install(self, root):
-        factory = root.manage_addProduct['silva.security.overview']
-
+    def install_custom(self, root):
         if self.service_id not in root.objectIds():
+            factory = root.manage_addProduct['silva.security.overview']
             factory.manage_addSecurityOverviewService(self.service_id)
-        super(Installer, self).install(root)
 
-    def uninstall(self, root):
+    def uninstall_custom(self, root):
         if self.service_id in root.objectIds():
             root.manage_delObjects([self.service_id])
-        super(Installer, self).uninstall(root)
+
 
 class IExtension(Interface):
     """Marker interface for our extension.
