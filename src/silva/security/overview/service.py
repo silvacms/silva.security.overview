@@ -249,7 +249,7 @@ class SecurityOverView(silvaforms.ZMIForm):
         return "/".join(self.context.get_root().getPhysicalPath())
 
     def smi_security_url(self, obj):
-        return "%s/edit/tab_access" % obj.absolute_url()
+        return "%s/edit" % obj.absolute_url()
 
     def cycle(self, name, values):
         if not hasattr(self, '_cycles'):
