@@ -14,7 +14,7 @@ all the site.
 You have the possibility to export the access definition in a CSV
 file.
 
-It requires at least Silva 2.3, and works on Silva 3.0.
+It requires at least Silva 3.0. For Silva 2.3, please look at older versions.
 
 Code repository
 ===============

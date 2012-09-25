@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# Copyright (c) 2012  Infrae. All rights reserved.
+# See also LICENSE.txt
 
 from zeam.utils.batch import Batch
 from zope.catalog.catalog import Catalog as Zope3Catalog

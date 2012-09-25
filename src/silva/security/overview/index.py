@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# Copyright (c) 2012  Infrae. All rights reserved.
+# See also LICENSE.txt
 # Path index implementation based on repoze.catalog.path2.PathIndex2
 
 from zope.interface import implements

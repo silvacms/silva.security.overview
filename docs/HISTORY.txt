@@ -1,10 +1,13 @@
 Changes
 =======
 
-1.2 (unreleased)
-----------------
+1.1.1 (2012/09/24)
+------------------
 
-* ...
+* Update installer for Silva 3.0c1.
+
+* Update generated links to ``tab_access`` in the service, that no
+  longer exists.
 
 1.1 (2011/11/14)
 ----------------
