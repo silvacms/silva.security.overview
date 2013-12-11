@@ -12,7 +12,7 @@ tests_require = [
 
 setup(name='silva.security.overview',
       version=version,
-      description="Security overview",
+      description="Extension providing a global overview of the permissions granted to users in the Silva CMS",
       long_description=open("README.txt").read() + "\n" +
                        open(os.path.join("docs", "HISTORY.txt")).read(),
       classifiers=[
@@ -24,7 +24,7 @@ setup(name='silva.security.overview',
       keywords='silva cms zope security',
       author='Infrae',
       author_email='info@infrae.com',
-      url='http://infrae.com/products/silva',
+      url='https://github.com/silvacms/silva.security.overview',
       license='BSD',
       package_dir={'': 'src'},
       packages=find_packages('src', exclude=['ez_setup']),
